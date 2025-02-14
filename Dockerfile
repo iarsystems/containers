@@ -35,7 +35,6 @@ libsqlite3-0 \
 libxml2 tzdata \
 udev libusb-1.0-0 usbutils \
 > /dev/null
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -qq /tmp/*.deb
 
 ARG BX_INCLUDE_CMAKE
 ARG BX_INCLUDE_GIT
@@ -49,6 +48,9 @@ RUN test ${BX_INCLUDE_GIT} -eq 1 \
 RUN test ${BX_INCLUDE_SUDO} -eq 1 \
 && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends sudo > /dev/null \
 || echo " **** BX_INCLUDE_SUDO is [off]."
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -qq /tmp/*.deb
+
 #
 # Slimming image
 #
@@ -103,7 +105,3 @@ COPY --from=base / /
 # Set working directory in the `final` image
 #
 WORKDIR ${HOME}
-#
-# Entrypoint: command invoked when a container starts
-#
-ENTRYPOINT ["/bin/bash"]

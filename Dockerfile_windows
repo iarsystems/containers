@@ -1,0 +1,110 @@
+# Dockerfile for the IAR Build Tools (BX)
+# Note: This is a basic dockerfile to build an IAR build image.
+# Multi-stage builds can also be opt using microsoft/nanoserver as final image, if supported.
+# For multistage, need to install required dependencies and copy the required files to the final image.
+
+# Build stage
+FROM mcr.microsoft.com/windows/servercore:ltsc2019 AS builder
+
+# Define arguments and labels
+ARG BX_PACKAGE_EXE=bx*.exe
+ARG GIT_VERSION=2.42.0
+ARG SQLITE_VERSION=3470000
+ARG GIT_HASH
+ARG SQLITE_HASH
+ARG BX_VERSION
+LABEL vendor="IAR Systems"
+
+# Use PowerShell as the default shell
+SHELL ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command"]
+
+# Create working directory for installations and remove at last, if needed
+# WORKDIR C:\setup
+
+# Verify and download dependencies with proper hash checking
+RUN $ErrorActionPreference = 'Stop'; \
+    $ProgressPreference = 'SilentlyContinue'; \
+    # Download Git
+    Write-Host "Downloading Git..."; \
+    Invoke-WebRequest -Uri "https://github.com/git-for-windows/git/releases/download/v\"$env:GIT_VERSION\".windows.1/MinGit-\"$env:GIT_VERSION\"-busybox-64-bit.zip" -OutFile git.zip; \
+    # If hash is provided, verify it
+    if ($env:GIT_HASH) { \
+        $actualHash = (Get-FileHash git.zip -Algorithm SHA256).Hash; \
+        if ($actualHash -ne $env:GIT_HASH) { \
+            throw \"Git package hash verification failed. Expected: $env:GIT_HASH, Got: $actualHash\"; \
+        } \
+        Write-Host \"Git package hash verified successfully\"; \
+    } else { \
+        Write-Warning \"No hash provided for Git package. Skipping verification.\"; \
+    }; \
+    # Download SQLite
+    Write-Host "Downloading SQLite..."; \
+    Invoke-WebRequest -Uri "https://www.sqlite.org/2024/sqlite-dll-win-x64-\"$env:SQLITE_VERSION\".zip" -OutFile sqlite3.zip -UseBasicParsing; \
+    # If hash is provided, verify it
+    if ($env:SQLITE_HASH) { \
+        $actualHash = (Get-FileHash sqlite3.zip -Algorithm SHA256).Hash; \
+        if ($actualHash -ne $env:SQLITE_HASH) { \
+            throw \"SQLite package hash verification failed. Expected: $env:SQLITE_HASH, Got: $actualHash\"; \
+        } \
+        Write-Host \"SQLite package hash verified successfully\"; \
+    } else { \
+        Write-Warning \"No hash provided for SQLite package. Skipping verification.\"; \
+    }
+
+# Install and enable other dependencies for C-STAT
+# libxml2, tzdata           : required by C-STAT
+
+# For further optmization, combining below RUN commands into a single RUN reduces the number of layers.
+
+# Extract dependencies
+RUN $ErrorActionPreference = 'Stop'; \
+    # Extract Git
+    Write-Host "Extracting Git..."; \
+    Expand-Archive -Path git.zip -DestinationPath C:\Git; \
+    Remove-Item -Force git.zip; \
+    # Extract SQLite
+    Write-Host "Extracting SQLite..."; \
+    Expand-Archive -Path sqlite3.zip -DestinationPath C:\sqlite3; \
+    Remove-Item -Force sqlite3.zip
+
+# Copy and install IAR Build Tools
+COPY ${BX_PACKAGE_EXE} C:\\setup\\bx_installer.exe
+
+# Install IAR Build Tools
+RUN $ErrorActionPreference = 'Stop'; \
+    Write-Host "Installing IAR Build Tools..."; \
+    $process = Start-Process -FilePath "C:\setup\bx_installer.exe" -ArgumentList "/hide_usd", "/autoinstall" -Wait -PassThru; \
+    if ($process.ExitCode -ne 0) { \
+        throw "IAR Build Tools installation failed with exit code: $($process.ExitCode)"; \
+    }
+
+# Set PATH environment variable
+RUN cmd /C "setx /M PATH \"%PATH%;C:\Git\cmd;C:\sqlite3;C:\iar\bxarm-$env:BX_VERSION\common\bin\""
+
+# Add health check - modify as needed
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD powershell -Command \
+        try { \
+            if (!(Test-Path -Path 'C:\iar')) { exit 1 }; \
+            if (!(Get-Command git -ErrorAction SilentlyContinue)) { exit 1 }; \
+            exit 0; \
+        } catch { exit 1 }
+
+# Configure security options
+# Create a new user named 'iaruser' or use inbuilt 'ContainerUser' for security
+# RUN powershell -Command { 
+#     New-LocalUser -Name "iaruser" -Password (ConvertTo-SecureString -AsPlainText "MySecurePassword" -Force) 
+# }
+# # Set the user for subsequent commands within the Dockerfile
+# USER iaruser
+
+RUN Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell' -Name ExecutionPolicy -Value RemoteSigned
+
+
+# Clean up temporary files
+RUN Remove-Item -Force -Recurse $env:TEMP\*; \
+    Remove-Item -Force -Recurse C:\Windows\Temp\*; \
+    Remove-Item -Force -Recurse C:\setup 
+
+# Set the working directory
+ENTRYPOINT ["powershell.exe", "-Command", "Set-Location C:/; powershell"]

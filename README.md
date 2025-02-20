@@ -86,6 +86,40 @@ Depending on your system specifications, chosen options and installer size, it m
 >[!NOTE]
 > When building an image, it is safe to ignore eventual `debconf: delaying package configuration, since apt-utils is not installed` warning messages.
 
+
+## Building a Docker image for Windows
+Before you can run a Docker container on Windows, you need a Docker image that contains the required environment. A Dockerfile contains instructions that describe how to build an image.
+
+After Docker Desktop is completely installed, make sure to upgrade it to the latest version using the Docker Desktop Dashboard.
+Enable Windows Containers (right click on docker icon in status bar and click on ‘Switch to Windows Container’)
+
+
+This [__Dockerfile__](Dockerfile_windows) was created as a universal template to build images with the IAR Build Tools on Windows.
+
+The [__`build`__](build.ps1) script will use the [`docker build`][url-docker-docs-build] command with the Dockerfile, together with an installer package (__bx`<package>`-`<version>`.exe__), to create one image.
+
+To build the image, you need to perform these steps:
+1. Set `BX_DOWNLOAD_URL` with the download link to the installer package you received from IAR Customer Support during your on-boarding process.
+```powershell
+$env:BX_DOWNLOAD_URL="<fill-with-the-download-URL>"
+for example: https://updates.iar.com/FileStore/STANDARD/001/003/382/bxarm-9.60.3.7274.exe
+```
+2. Clone the [bx-docker][url-repo] repository to the user's home directory.
+```powershell
+git clone https://github.com/iarsystems/bx-docker.git C:\Users\<YourUsername>\bx-docker
+```
+3. Invoke the __`build`__ script pointing to the downloaded installer package and version:
+```powershell
+cd C:\Users\<YourUsername>\bx-docker
+```
+```powershell
+Invoke-WebRequest -Uri $env:BX_DOWNLOAD_URL -OutFile (Split-Path -Leaf $env:BX_DOWNLOAD_URL)
+```
+```powershell
+.\build.ps1 -package $env:BX_DOWNLOAD_URL
+```
+---------------------------------------------------------------------------
+
 ## Setting up the license 
 The IAR Build Tools require an available network license to operate.
 
@@ -102,6 +136,22 @@ $ ~/bx-docker/setup-license iarsystems/bx<image>:<tag> <iar-license-server-ip>
 
 >[!IMPORTANT]
 >Setting up the license for a Docker image in such a way only needs to be performed once per __DOCKER_HOST__. The Docker Engine will never erase this (or any other) named volume, even after the containers which made use of it are stopped or removed. For manually removing a named volume, remove all containers using it and then use `docker volume rm <volume-name>`.
+
+## Setting up the license for Windows
+The IAR Build Tools require an available network license to operate.
+
+The [__`setup-license`__](setup-license.ps1) script prepares a named [Docker volume][url-docker-docs-volume] for storing persistent license configuration for any containers belonging to the same __DOCKER_HOST__.
+
+In the PowerShell, perform the following step (replace `iarsystems/bx<image>:<tag>` and `<iar-license-server-ip>` by the actual ones):
+```powershell
+.\setup-license.ps1 -PkgNameVersion iarsystems/bx<image>:<tag> -lms2ip <iar-license-server-ip>
+```
+
+> [!NOTE]
+> During this license setup, we will create a container using the recently built IAR image and stop the container.
+> We can start the same container to run the IAR build as described in the section below.
+
+---------------------------------------------------------------------------------
 
 ## Example: interactively building a project
 Though this is not the way a container image is intended to be used, let's build a project locally and interactively with the container image you have just created.
@@ -178,6 +228,53 @@ Total number of errors: 0
 Total number of warnings: 0
 Build succeeded
 ```
+
+## Running a container on Windows (if not run during License setup)
+In this section, you will run an interactive container locally, clone and build a project with the image you have created.
+
+The following command line will bind the home directory (`$HOME`) to the "win-iar-bx-container" container's working directory (`C:\build`) for the `iarsystems/bx<image>:<tag>` image.
+
+```powershell
+docker run `
+  --restart=unless-stopped `
+  --detach `
+  --tty `
+  --name win-iar-bx-container `
+  --hostname $env:COMPUTERNAME `
+  --volume $env:USERPROFILE:C:\build `
+  iarsystems/bx<image>:<tag>
+```
+
+You can check your containers with `docker container ls`:
+```powershell
+docker container ls
+```
+
+Enter the container:
+```powershell
+docker exec -it win-iar-bx-container powershell
+```
+
+## Building projects with the IAR Build Tools on Windows
+Finally, build the library project for the selected `<target>` (e.g. arm, avr, riscv, rl78, rx, rh850). In the following example, "arm" was selected and `iarbuild` was used to build the project:
+
+For this example we will clone a public repository with projects created in the [IAR Embedded Workbench IDE][url-iar-ew] for the supported target architectures:
+```powershell
+git clone https://github.com/iarsystems/bx-workspaces-ci
+```
+
+```powershell
+iarbuild bx-workspaces-ci\targets\arm\library.ewp -build Release
+```
+
+### Windows IAR Build in Action
+![Windows IAR Build Flow ](windows_image_process.png)
+
+> [!TIP]
+> Invoke `iarbuild` with no parameters for a detailed description of available options.
+
+---------------------------------------------------------------------------------
+
 
 ### Performing static code analysis
 Additionally, [IAR C-STAT][url-iar-cstat] is an add-on to the IAR Build Tools that can perform static code analysis. It helps you ensure code quality in your applications. If you have C-STAT, `iarbuild` can drive the analysis with the `-cstat_analyze <build-cfg>` command to analyze the project.

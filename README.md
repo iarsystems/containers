@@ -28,4 +28,4 @@ The simplest way to customize a container image is to create a new image using o
 Alternatively, you can [create a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) or [import](https://docs.github.com/en/migrations/importing-source-code/using-github-importer/importing-a-repository-with-github-importer) this repository into your user account or organization account. From there, you can make modifications, commit changes, and have your custom images automatically built for you by GitHub Actions.
 
 
-[^1]: The use of these images is subject to the [IAR Software License Agreement](LICENSE.md) and requires a valid subscription-based activation token for operation. If you are not yet a subscriber, please [contact us](https://iar.com/about/contact) for more information.
+[^1]: The use of these images is subject to the [IAR Software License Agreement](https://github.com/iarsystems/containers/blob/master/LICENSE.md) and requires a valid subscription-based activation token for operation. If you are not yet a subscriber, please [contact us](https://iar.com/about/contact) for more information.

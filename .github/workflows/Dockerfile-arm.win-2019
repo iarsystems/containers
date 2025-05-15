@@ -1,0 +1,38 @@
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+
+# These variables should be populated if building images outside the GitHub Actions workflow
+ARG URL
+ARG TARGET
+ARG VERSION
+
+LABEL org.opencontainers.image.description="IAR Build Tools for ${TARGET} (CX)"
+LABEL org.opencontainers.image.ref_name="cx${TARGET}"
+LABEL org.opencontainers.image.source="https://iar.com"
+LABEL org.opencontainers.image.vendor="IAR Systems AB"
+LABEL org.opencontainers.image.version=${VERSION}
+
+# Set PowerShell as default shell for RUN
+SHELL ["powershell.exe", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# Install the IAR Build Tools
+RUN \
+Invoke-WebRequest -Uri "${env:URL}" -OutFile "cx${env:TARGET}-${env:VERSION}.exe"; \
+Start-Process -FilePath "cx${env:TARGET}-${env:VERSION}.exe" -ArgumentList "/hide_usd","/autoinstall" -wait; \
+Remove-Item "cx${env:TARGET}-${env:VERSION}.exe"; \
+$env:PATH +=  'C:/iar/cx' + $env:TARGET + '-' + $env:VERSION + '/' + $env:TARGET + '/bin'; \
+$env:PATH += ';C:/iar/cx' + $env:TARGET + '-' + $env:VERSION + '/common/bin'; \
+# Install CMake
+Invoke-WebRequest -Uri "https://github.com/Kitware/CMake/releases/download/v4.0.2/cmake-4.0.2-windows-x86_64.zip" -OutFile "cmake-4.0.2-windows-x86_64.zip"; \
+Expand-Archive "cmake-4.0.2-windows-x86_64.zip" -DestinationPath "C:/"; \
+Remove-Item "cmake-4.0.2-windows-x86_64.zip"; \
+$env:PATH += 'C:/cmake-4.0.2-windows-x86_64/bin'; \
+# Install Git
+Invoke-WebRequest -Uri "https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/MinGit-2.49.0-busybox-64-bit.zip" -OutFile "MinGit-2.49.0-busybox-64-bit.zip"; \
+Expand-Archive "MinGit-2.49.0-busybox-64-bit.zip" -DestinationPath "MinGit-2.49.0-busybox-64-bit"; \
+Remove-Item "MinGit-2.49.0-busybox-64-bit.zip"; \
+$env:PATH += 'C:/MinGit-2.49.0-busybox-64-bit/cmd'; \
+# Persist $env:PATH for the container
+[Environment]::SetEnvironmentVariable('Path', $env:PATH, [EnvironmentVariableTarget]::Machine)
+
+# Set the work directory
+WORKDIR "C:/workdir"

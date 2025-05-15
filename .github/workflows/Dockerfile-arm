@@ -1,0 +1,47 @@
+FROM ubuntu:24.04
+
+# These variables should be populated if building images outside the GitHub Actions workflow
+ARG TARGET
+ARG VERSION
+ARG VARIANT
+
+LABEL org.opencontainers.image.description="IAR Build Tools for ${TARGET} (CX)"
+LABEL org.opencontainers.image.ref_name="cx${TARGET}"
+LABEL org.opencontainers.image.source="https://iar.com"
+LABEL org.opencontainers.image.vendor="IAR Systems AB"
+LABEL org.opencontainers.image.version=${VERSION}
+
+ENV LC_ALL=C \
+DEBIAN_FRONTEND="noninteractive" \
+PATH=/opt/iar/cx${TARGET}/${TARGET}/bin:/opt/iar/cx${TARGET}/common/bin:$PATH \
+CC=icc${TARGET} \
+CXX=icc${TARGET} \
+ASM=iasm${TARGET} \
+HOME=/workdir
+
+# Linux-specific dependencies and conveniences
+RUN apt-get update \
+&& apt-get install -y --no-install-recommends \
+bzip2 \
+ca-certificates \
+git \
+libsqlite3-0 \
+libxml2 \
+tzdata \
+wget \
+libusb-1.0-0 \
+usbutils \
+&& rm -rf /var/lib/apt/lists/*
+
+# Intall IAR Build Tools and CMake
+RUN mkdir /opt/iar \
+&& wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-base.tar.bz2" | tar --strip-components=1 -xj -C "/opt/iar" \
+&& /bin/bash -c "wget -qO- 'https://github.com/Kitware/CMake/releases/download/v4.0.2/cmake-4.0.2-linux-x86_64.tar.gz' | tar --strip-components=1 -xz -C '/usr/local'" \
+&& cd /opt/iar && ln -s cx${TARGET}-${VERSION} cx${TARGET}
+
+
+# Set the default work directory to ${HOME}
+WORKDIR ${HOME}
+
+# Set the entrypoint for the image
+ENTRYPOINT ["/bin/bash"]

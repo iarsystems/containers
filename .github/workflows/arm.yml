@@ -50,7 +50,6 @@ jobs:
         variant:
         - additional
         - microchip
-        - minimal
         - renesas
         - nxp
         - infineon
@@ -78,6 +77,36 @@ jobs:
         # With this the image to be pushed will be tagged as
         # ghcr.io/<account>/<target>:<version>-<variant>
         tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.version }}-${{ matrix.variant }}
+
+  # Generate the minimal image with the IAR Build tools for Arm (Linux)
+  arm-minimal-linux:
+    needs: [ arm-windows ]
+    strategy:
+      matrix:
+        target: [ arm ]
+        version: [ 9.60.4 ]
+        variant:
+        - minimal
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@main
+    - if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - if: matrix.variant == 'base'
+      uses: docker/build-push-action@v6
+      with:
+        file: ./.github/workflows/Dockerfile-${{ matrix.target }}-${{ matrix.variant }}
+        build-args: |
+          TARGET=${{ matrix.target }}
+          VERSION=${{ matrix.version }}
+          VARIANT=${{ matrix.variant }}
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: |
+          ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.version }}-${{ matrix.variant }}
 
   # Finally, generate the base image with the IAR Build tools for Arm (Linux)
   # *without* vendor-specific device support (tagged as :latest)

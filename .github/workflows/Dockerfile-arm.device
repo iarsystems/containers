@@ -36,8 +36,8 @@ usbutils \
 
 # Intall IAR Build Tools, Device support and CMake
 RUN mkdir /opt/iar \
-&& wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-base.tar.bz2" | tar --strip-components=1 -xj -C /opt/iar \
-&& if [[ "${VARIANT}" != "minimal" ]]; then wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-device-support-${VARIANT}-${VERSION}.${TIMESTAMP}.tar.bz2" | tar --strip-components=1 -xj -C /opt/iar; fi \
+&& if [[ "${VARIANT}" != "minimal" ]]; then wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-base.tar.bz2" | tar --strip-components=1 -xj -C /opt/iar; else wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-minimal.tar.bz2" | tar --strip-components=1 -xj -C /opt/iar; fi \
+&& wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-device-support-${VARIANT}-${VERSION}.${TIMESTAMP}.tar.bz2" | tar --strip-components=1 -xj -C /opt/iar \
 && wget -qO- "https://github.com/Kitware/CMake/releases/download/v4.0.2/cmake-4.0.2-linux-x86_64.tar.gz" | tar --strip-components=1 -xz -C /usr/local \
 && cd /opt/iar && ln -s cx${TARGET}-${VERSION} cx${TARGET}
 

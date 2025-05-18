@@ -11,7 +11,7 @@ Pre-built container images are generated from annotated [workflows](.github/work
 
 | Status | Origin | OS/Arch | Base image
 | - | - | - | -
-| [![arm](https://github.com/iarsystems/containers/actions/workflows/arm.yml/badge.svg)](https://github.com/iarsystems/containers/pkgs/container/arm) | [IAR Build Tools for Arm (CX)](https://github.com/iarsystems/arm) | linux/amd64<br>windows/amd64 | `ghcr.io/iarsystems/arm`
+| [![arm-linux](https://github.com/iarsystems/containers/actions/workflows/arm-linux.yml/badge.svg)](https://github.com/iarsystems/containers/pkgs/container/arm)<br>[![arm-windows](https://github.com/iarsystems/containers/actions/workflows/arm-windows.yml/badge.svg)](https://github.com/iarsystems/containers/pkgs/container/arm) | [IAR Build Tools for Arm (CX)](https://github.com/iarsystems/arm) | linux/amd64<br>windows/amd64 | [`ghcr.io/iarsystems/arm`](https://github.com/iarsystems/containers/pkgs/container/arm)
 
 All [container images](https://github.com/orgs/iarsystems/packages) produced from this repository are freshen on a schedule.
 

@@ -20,6 +20,7 @@ Below you will find live examples using these pre-built container images on proj
 | Example | Description
 | - | -
 | [github-actions-ci-example](https://github.com/iarsystems/github-actions-ci-example) | Use a container image to produce automated builds.
+| [iar-cmsis-dsp](https://github.com/iarsystems/iar-cmsis-dsp) | Automated builds for the Arm CMSIS-DSP libraries.
 
 
 ## Applying customizations

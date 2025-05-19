@@ -19,7 +19,8 @@ All [container images](https://github.com/orgs/iarsystems/packages) produced fro
 Below you will find live examples using these pre-built container images on projects and those can serve as inspiration for your own projects.
 | Example | Description
 | - | -
-| [github-actions-ci-example](https://github.com/iarsystems/github-actions-ci-example) | Use a container image to produce automated builds.
+| [github-actions-ci-example](https://github.com/iarsystems/github-actions-ci-example) | Run automated builds on GitHub Actions.
+| [bitbucket-ci-example](https://github.com/iarsystems/bitbucket-ci-example) | Run automated builds on Bitbucket Pipelines.
 | [iar-cmsis-dsp](https://github.com/iarsystems/iar-cmsis-dsp) | Automated builds for the Arm CMSIS-DSP libraries.
 | [cmake-tutorial](https://github.com/iarsystems/cmake-tutorial) | Automated builds for CMake projects.
 

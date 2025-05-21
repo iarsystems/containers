@@ -4,8 +4,8 @@ on:
   # Workflow dispatched manually
   workflow_dispatch:
   # Workflow runs weekly on Wednesday
-  schedule:
-  - cron: '30 0 * * 3'
+  #schedule:
+  #- cron: '30 0 * * 3'
   # Workflow runs automatically after `arm-windows`
   workflow_run:
     workflows: [ "arm-windows" ]

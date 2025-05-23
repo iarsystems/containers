@@ -39,6 +39,3 @@ RUN mkdir /opt/iar \
 
 # Set the default work directory to ${HOME}
 WORKDIR ${HOME}
-
-# Set the entrypoint for the image
-ENTRYPOINT ["/bin/bash"]

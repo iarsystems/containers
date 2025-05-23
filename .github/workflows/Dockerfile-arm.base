@@ -42,9 +42,5 @@ RUN mkdir /opt/iar \
 && cd /opt/iar \
 && ln -s cx${TARGET}-${VERSION} cx${TARGET}
 
-
 # Set the default work directory to ${HOME}
 WORKDIR ${HOME}
-
-# Set the entrypoint for the image
-ENTRYPOINT ["/bin/bash"]

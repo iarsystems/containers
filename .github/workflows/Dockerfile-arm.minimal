@@ -25,14 +25,14 @@ HOME=/workdir
 RUN apt-get update \
 && apt-get install -y --no-install-recommends \
 ca-certificates \
-bzip2 \
+lbzip2 \
 wget \
 git \
 && rm -rf /var/lib/apt/lists/*
 
 # Intall IAR Build Tools and CMake
 RUN mkdir /opt/iar \
-&& wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-minimal.tar.bz2" | tar --strip-components=1 -xj -C '/opt/iar' \
+&& wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-minimal.tar.bz2" | tar -I lbzip2 --strip-components=1 -x -C '/opt/iar' \
 && wget -qO- 'https://github.com/Kitware/CMake/releases/download/v4.0.2/cmake-4.0.2-linux-x86_64.tar.gz' | tar --strip-components=1 -xz -C '/usr/local' \
 && cd /opt/iar \
 && ln -s cx${TARGET}-${VERSION} cx${TARGET}

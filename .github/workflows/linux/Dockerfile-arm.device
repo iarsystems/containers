@@ -6,7 +6,7 @@ ARG TIMESTAMP
 ARG REGISTRY_REPO
 
 # Re-use base image as base layer
-FROM ${REGISTRY_REPO}/${TARGET}:${VERSION}-base
+FROM ${REGISTRY_REPO}/${TARGET}:${VERSION}-linux-base
 
 # Reuse previous arguments in this stage
 ARG TARGET

@@ -4,7 +4,7 @@ ARG VERSION
 ARG REGISTRY_REPO
 
 # Re-use minimal image as base layer
-FROM ${REGISTRY_REPO}/${TARGET}:${VERSION}-minimal
+FROM ${REGISTRY_REPO}/${TARGET}:${VERSION}-linux-minimal
 
 # Reuse previous arguments in this stage
 ARG TARGET

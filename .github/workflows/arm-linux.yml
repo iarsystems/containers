@@ -3,9 +3,6 @@ name: arm-linux
 on:
   # Workflow dispatched manually
   workflow_dispatch:
-  # Workflow runs weekly on Wednesday
-  #schedule:
-  #- cron: '30 0 * * 3'
   # Workflow runs automatically after `arm-windows`
   workflow_run:
     workflows: [ "arm-windows" ]
@@ -21,7 +18,7 @@ jobs:
     strategy:
       matrix:
         target: [ arm ]
-        version: [ 9.60.4 ]
+        version: [ 9.70.1, 9.60.4 ]
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main
@@ -33,13 +30,13 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - uses: docker/build-push-action@v6
       with:
-        file: ./.github/workflows/Dockerfile-${{ matrix.target }}.minimal
+        file: ./.github/workflows/linux/Dockerfile-${{ matrix.target }}.minimal
         build-args: |
           TARGET=${{ matrix.target }}
           VERSION=${{ matrix.version }}
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-          ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.version }}-minimal
+          ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.version }}-linux-minimal
 
   # Generate the -base image with the IAR Build tools for Arm.
   # It includes: -minimal, `cspybat`, `iarbuild` and `cstat`.
@@ -49,8 +46,7 @@ jobs:
     strategy:
       matrix:
         target: [ arm ]
-        version: [ 9.60.4 ]
-        registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
+        version: [ 9.70.1, 9.60.4 ]
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main
@@ -62,14 +58,14 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - uses: docker/build-push-action@v6
       with:
-        file: ./.github/workflows/Dockerfile-${{ matrix.target }}.base
+        file: ./.github/workflows/linux/Dockerfile-${{ matrix.target }}.base
         build-args: |
           TARGET=${{ matrix.target }}
           VERSION=${{ matrix.version }}
-          REGISTRY_REPO=${{ matrix.registry-repo }}
+          REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-          ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.version }}-base
+          ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.version }}-linux-base
             
   # Generate variant images with the IAR Build Tools for Arm
   # *including* vendor-specific device support
@@ -78,7 +74,9 @@ jobs:
     strategy:
       matrix:
         target: [ arm ]
-        version: [ 9.60.4 ]
+        cfg:
+        - { version: 9.70.1, timestamp: 20250521120920 }
+        - { version: 9.60.4, timestamp: 20250303090915 }
         variant:
         - additional
         - microchip
@@ -87,8 +85,6 @@ jobs:
         - infineon
         - st
         - ti
-        timestamp: [ 20250303090915 ]
-        registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main
@@ -100,24 +96,34 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - uses: docker/build-push-action@v6
       with:
-        file: ./.github/workflows/Dockerfile-${{ matrix.target }}.device
+        file: ./.github/workflows/linux/Dockerfile-${{ matrix.target }}.device
         build-args: |
           TARGET=${{ matrix.target }}
-          VERSION=${{ matrix.version }}
+          VERSION=${{ matrix.cfg.version }}
           VARIANT=${{ matrix.variant }}
-          TIMESTAMP=${{ matrix.timestamp }}
-          REGISTRY_REPO=${{ matrix.registry-repo }}
+          TIMESTAMP=${{ matrix.cfg.timestamp }}
+          REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
         push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-${{ matrix.variant }}
+        tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-linux-${{ matrix.variant }}
 
   # Regenerate the Docker manifest so that we get the multi-arch image
-  arm-multi:
+  arm-multi-arch:
     needs: [ arm-device ]
     strategy:
       matrix:
         target: [ arm ]
-        version: [ 9.60.4 ]
+        version: [ 9.70.1, 9.60.4 ]
         registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
+        variant:
+        - minimal
+        - base
+        - additional
+        - microchip
+        - renesas
+        - nxp
+        - infineon
+        - st
+        - ti
     runs-on: ubuntu-24.04
     steps:
     - if: github.event_name != 'pull_request'
@@ -127,7 +133,34 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - run: |
-        docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }} \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-base \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows
-        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}
+        docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-${{ matrix.variant }} \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-linux-${{ matrix.variant }} \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2022-${{ matrix.variant }} \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2025-${{ matrix.variant }}
+        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-${{ matrix.variant }}
+
+# Finalize manifest        
+  arm-manifest-finalize:
+    needs: [ arm-multi-arch]
+    strategy:
+      matrix:
+        target: [ arm ]
+        latest: [ 9.70.1 ]
+        registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
+    runs-on: ubuntu-24.04
+    steps:
+    - if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Regenerate manifest for latest
+      run: |
+        docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:latest \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-linux-base \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-windows-2022-base \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-windows-2025-base
+    - name: Push the manifest
+      run: |
+        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:latest

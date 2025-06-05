@@ -15,4 +15,4 @@ ARG VARIANT
 ARG TIMESTAMP
 
 # Intall Device support
-RUN wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-device-support-${VARIANT}-${VERSION}.${TIMESTAMP}.tar.bz2" | tar -I lbzip2 --strip-components=1 -x -C '/opt/iar'
+RUN wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-device-support-${VARIANT}-${VERSION}.${TIMESTAMP}.tar.bz2" | tar -I lbzip2 -x -C '/opt/iar'

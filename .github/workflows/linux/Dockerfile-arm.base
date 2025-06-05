@@ -11,4 +11,4 @@ ARG TARGET
 ARG VERSION
 
 # Intall additional IAR Build Tools
-RUN wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-base.tar.bz2" | tar -I lbzip2 --skip-old-files --strip-components=1 -x -C '/opt/iar'
+RUN wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-base.tar.bz2" | tar -I lbzip2 --skip-old-files -x -C '/opt/iar'

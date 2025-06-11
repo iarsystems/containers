@@ -9,9 +9,10 @@
 ## GitHub Actions workflow
 Pre-built container images are generated from annotated [workflows](.github/workflows) for the supported cloud-enabled products.
 
-| Status | Origin | OS/Arch | Base image
+| Status | Origin | OS/Arch | Default image
 | - | - | - | -
 | [![arm-linux](https://github.com/iarsystems/containers/actions/workflows/arm-linux.yml/badge.svg)](https://github.com/iarsystems/containers/pkgs/container/arm)<br>[![arm-windows](https://github.com/iarsystems/containers/actions/workflows/arm-windows.yml/badge.svg)](https://github.com/iarsystems/containers/pkgs/container/arm) | [IAR Build Tools for Arm (CX)](https://github.com/iarsystems/arm) | linux/amd64<br>windows/amd64 | [`ghcr.io/iarsystems/arm`](https://github.com/iarsystems/containers/pkgs/container/arm)
+| [![riscv-linux](https://github.com/iarsystems/containers/actions/workflows/riscv-linux.yml/badge.svg)](https://github.com/iarsystems/containers/pkgs/container/riscv)<br>[![arm-windows](https://github.com/iarsystems/containers/actions/workflows/riscv-windows.yml/badge.svg)](https://github.com/iarsystems/containers/pkgs/container/riscv) | [IAR Build Tools for RISC-V (CX)](https://github.com/iarsystems/arm) | linux/amd64<br>windows/amd64 | [`ghcr.io/iarsystems/riscv`](https://github.com/iarsystems/containers/pkgs/container/riscv)
 
 All [container images](https://github.com/orgs/iarsystems/packages) produced from this repository are freshen on a schedule.
 

@@ -1,0 +1,44 @@
+name: riscv-windows
+
+on:
+  # Workflow dispatched manually
+  workflow_dispatch:
+  # Workflow under a monthly Patch Tuesday schedule
+  schedule:
+  - cron: '30 23 8-14 * 2'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # Generate the -full image with the IAR Build tools for RISC-V.
+  # It includes: -minimal, `cspybat`, `iarbuild` and `cstat`,
+  # and all vendor-specific device support
+  riscv-full:
+    strategy:
+      matrix:
+        target: [ riscv ]
+        cfg:
+        - { version: 3.40.1, target-tag: 650 }
+        os: [ 2022, 2025 ]
+    runs-on: windows-${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@main
+    - if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - if: github.event_name != 'pull_request'
+      run: |
+        docker build -t ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full `
+          -f .github/workflows/windows/Dockerfile-${{ matrix.target }}.full `
+          --build-arg TARGET=${{ matrix.target }} `
+          --build-arg VERSION=${{ matrix.cfg.version }} `
+          --build-arg TARGET_TAG=${{ matrix.cfg.target-tag }} `
+          --build-arg WINVER=${{ matrix.os }} `
+          .github/workflows/windows;
+        docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.target}}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full;
+      shell: pwsh

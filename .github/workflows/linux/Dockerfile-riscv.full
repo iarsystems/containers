@@ -39,7 +39,7 @@ RUN wget -q https://netstorage.iar.com/FileStore/STANDARD/001/003/${LMSC_TAG}/ia
 && wget -q https://netstorage.iar.com/FileStore/STANDARD/001/003/${TARGET_TAG}/cx${TARGET}-${VERSION}.deb \
 && dpkg -i cx${TARGET}-${VERSION}.deb \
 && rm *.deb \
-&& wget -qO- 'https://github.com/Kitware/CMake/releases/download/v4.0.2/cmake-4.0.2-linux-x86_64.tar.gz' | tar --strip-components=1 -xz -C '/usr/local'
+&& wget -qO- 'https://github.com/Kitware/CMake/releases/download/v4.0.3/cmake-4.0.3-linux-x86_64.tar.gz' | tar --strip-components=1 -xz -C '/usr/local'
 
 # Set the default work directory to ${HOME}
 WORKDIR ${HOME}

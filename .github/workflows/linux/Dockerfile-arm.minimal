@@ -33,7 +33,7 @@ git \
 # Intall IAR Build Tools and CMake
 RUN mkdir /opt/iar \
 && wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-minimal.tar.bz2" | tar -I lbzip2 -x -C '/opt/iar' \
-&& wget -qO- 'https://github.com/Kitware/CMake/releases/download/v4.0.2/cmake-4.0.2-linux-x86_64.tar.gz' | tar --strip-components=1 -xz -C '/usr/local' \
+&& wget -qO- 'https://github.com/Kitware/CMake/releases/download/v4.0.3/cmake-4.0.3-linux-x86_64.tar.gz' | tar --strip-components=1 -xz -C '/usr/local' \
 && cd /opt/iar \
 && ln -s cx${TARGET}-${VERSION} cx${TARGET}
 

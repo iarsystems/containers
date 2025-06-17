@@ -21,7 +21,7 @@ SHELL ["powershell.exe", "-Command", "$ErrorActionPreference = 'Stop'; $Progress
 
 # Install CMake
 RUN \
-Invoke-WebRequest -Uri "https://github.com/Kitware/CMake/releases/download/v4.0.2/cmake-4.0.2-windows-x86_64.zip" -OutFile "cmake.zip"; \
+Invoke-WebRequest -Uri "https://github.com/Kitware/CMake/releases/download/v4.0.3/cmake-4.0.3-windows-x86_64.zip" -OutFile "cmake.zip"; \
 Expand-Archive "cmake.zip" -DestinationPath "C:/";
 # Install Git
 RUN Invoke-WebRequest -Uri "https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/MinGit-2.49.0-busybox-64-bit.zip" -OutFile "git.zip"; \
@@ -34,7 +34,7 @@ RUN Invoke-WebRequest -Uri "https://github.com/iarsystems/${env:TARGET}/releases
 Expand-Archive "cxarm.zip" -DestinationPath "C:/iar";
 # Remove-Item "vc_redist.x64.exe", "*.zip";
 
-ENV PATH="C:\Windows;C:\Windows\System32;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\iar\cx${TARGET}-${VERSION}\${TARGET}\bin;C:\iar\cx${TARGET}-${VERSION}\common\bin;C:\cmake-4.0.2-windows-x86_64\bin;C:\git\cmd"
+ENV PATH="C:\Windows;C:\Windows\System32;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\iar\cx${TARGET}-${VERSION}\${TARGET}\bin;C:\iar\cx${TARGET}-${VERSION}\common\bin;C:\cmake-4.0.3-windows-x86_64\bin;C:\git\cmd"
 
 # Set the work directory
 WORKDIR "C:/workdir"

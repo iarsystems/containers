@@ -17,7 +17,7 @@ LABEL org.opencontainers.image.version=${VERSION}
 SHELL ["powershell.exe", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 ADD https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-windows-x86_64-minimal.zip cxarm.zip
-ADD https://github.com/Kitware/CMake/releases/download/v4.0.2/cmake-4.0.2-windows-x86_64.zip C:/cmake.zip
+ADD https://github.com/Kitware/CMake/releases/download/v4.0.3/cmake-4.0.3-windows-x86_64.zip C:/cmake.zip
 ADD https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/MinGit-2.49.0-busybox-64-bit.zip C:/git.zip
 ADD https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip ninja-win.zip
 
@@ -36,10 +36,10 @@ FROM mcr.microsoft.com/windows/nanoserver:ltsc${WINVER}
 ARG TARGET
 ARG VERSION
 
-ENV PATH="C:\Windows;C:\Windows\System32;C:\iar\cx${TARGET}-${VERSION}\${TARGET}\bin;C:\iar\cx${TARGET}-${VERSION}\common\bin;C:\cmake-4.0.2-windows-x86_64\bin;C:\git\cmd"
+ENV PATH="C:\Windows;C:\Windows\System32;C:\iar\cx${TARGET}-${VERSION}\${TARGET}\bin;C:\iar\cx${TARGET}-${VERSION}\common\bin;C:\cmake-4.0.3-windows-x86_64\bin;C:\git\cmd"
 
 COPY --from=build ["C:/iar", "C:/iar"]
-COPY --from=build ["C:/cmake-4.0.2-windows-x86_64", "C:/cmake-4.0.2-windows-x86_64" ]
+COPY --from=build ["C:/cmake-4.0.3-windows-x86_64", "C:/cmake-4.0.3-windows-x86_64" ]
 COPY --from=build [ "C:/git", "C:/git" ]
 COPY --from=build [ "C:/Windows/ninja.exe", "C:/Windows/ninja.exe"]
 

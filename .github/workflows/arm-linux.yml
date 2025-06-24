@@ -141,7 +141,7 @@ jobs:
 
 # Finalize manifest        
   arm-manifest-finalize:
-    needs: [ arm-multi-arch]
+    needs: [ arm-multi-arch ] 
     strategy:
       matrix:
         target: [ arm ]

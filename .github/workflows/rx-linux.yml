@@ -1,0 +1,79 @@
+name: rx-linux
+
+on:
+  # Workflow dispatched manually
+  workflow_dispatch:
+  # Workflow runs automatically after `rx-windows`
+  workflow_run:
+    workflows: [ "rx-windows" ]
+    types: [ completed ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # Generate the -full image with the IAR Build tools for Renesas RX.
+  rx-full:
+    strategy:
+      matrix:
+        target: [ rx ]
+        cfg:
+        - { version: 5.20.1, target-tag: 711, lmsc-version: 1.5, lmsc-tag: 739 }
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@main
+    - if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - uses: docker/build-push-action@v6
+      with:
+        file: ./.github/workflows/linux/Dockerfile-${{ matrix.target }}.full
+        build-args: |
+          TARGET=${{ matrix.target }}
+          VERSION=${{ matrix.cfg.version }}
+          TARGET_TAG=${{ matrix.cfg.target-tag }}
+          LMSC_VERSION=${{ matrix.cfg.lmsc-version }}
+          LMSC_TAG=${{ matrix.cfg.lmsc-tag }}
+          REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: |
+          ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-linux-full
+
+  # Regenerate the Docker manifest so that we get the multi-arch image
+  rx-multi-arch:
+    needs: [ rx-full ]
+    strategy:
+      matrix:
+        target: [ rx ]
+        version: [ 5.20.1 ]
+        latest: [ 5.20.1 ]
+        registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
+    runs-on: ubuntu-24.04
+    steps:
+    - if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - run: |
+        docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }} \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-linux-full \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2022-full \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2025-full
+    - name: Push the manifest
+      run: |
+        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}
+    - name: Finalize Manifest (latest)
+      run: |
+        docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:latest \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-linux-full \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2022-full \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2025-full
+    - name: Push the manifest (latest)
+      run: |
+        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:latest          

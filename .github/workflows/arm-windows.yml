@@ -79,7 +79,7 @@ jobs:
         os: [ 2022, 2025 ]
         target: [ arm ]
         cfg:
-        - { version: 9.70.1, timestamp: 20250521120920 }
+        - { version: 9.70.1, timestamp: 20250625133953 }
         - { version: 9.60.4, timestamp: 20250303090915 }
         variant:
         - additional

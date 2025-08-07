@@ -3,9 +3,9 @@ name: rl78-windows
 on:
   # Workflow dispatched manually
   workflow_dispatch:
-  # Workflow under a monthly Patch Tuesday schedule
+  # Workflow under a monthly schedule
   schedule:
-  - cron: '30 23 8-14 * 2'
+  - cron: '30 0 1 * *'
 
 permissions:
   contents: read

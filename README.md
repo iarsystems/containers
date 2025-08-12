@@ -26,6 +26,7 @@ Below you will find live examples using these pre-built container images on proj
 | [bitbucket-ci-example](https://github.com/iarsystems/bitbucket-ci-example) | Run automated builds on Bitbucket Pipelines.
 | [iar-cmsis-dsp](https://github.com/iarsystems/iar-cmsis-dsp) | Automated builds for the Arm CMSIS-DSP libraries.
 | [cmake-tutorial](https://github.com/iarsystems/cmake-tutorial) | Automated builds for CMake projects.
+| [modern-workflow](https://github.com/iarsystems/modern-workflow) | An example of modern development workflow with IAR.
 
 
 ## Applying customizations

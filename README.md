@@ -6,9 +6,6 @@
 >[!WARNING]
 >The information in this repository is subject to change without notice and does not constitute a commitment by IAR. While it serves as reference model for implementing Continuous Integration with IAR Tools, IAR assumes no responsibility for any errors, omissions, or specific implementations.
 
->[!CAUTION]
->An extraneous regression that affects `ASM` settings persistence for when __reconfiguring__ a project was introduced in CMake 4.1.0. A fix is planned for CMake [4.1.2](https://gitlab.kitware.com/cmake/cmake/-/merge_requests/11160).
-
 ## GitHub Actions workflow
 Pre-built container images are generated from annotated [workflows](.github/workflows) for the supported cloud-enabled products.
 

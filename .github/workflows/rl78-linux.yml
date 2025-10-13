@@ -19,6 +19,7 @@ jobs:
       matrix:
         target: [ rl78 ]
         cfg:
+        - { version: 5.20.2, target-tag: 911, lmsc-version: 1.7, lmsc-tag: 923 }
         - { version: 5.20.1, target-tag: 698, lmsc-version: 1.5, lmsc-tag: 739 }
     runs-on: ubuntu-24.04
     steps:
@@ -49,8 +50,8 @@ jobs:
     strategy:
       matrix:
         target: [ rl78 ]
-        version: [ 5.20.1 ]
-        latest: [ 5.20.1 ]
+        version: [ 5.20.2 ]
+        latest: [ 5.20.2 ]
         registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
     runs-on: ubuntu-24.04
     steps:

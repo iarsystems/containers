@@ -18,6 +18,7 @@ jobs:
       matrix:
         target: [ rl78 ]
         cfg:
+        - { version: 5.20.2, build: 2949, target-tag: 910 }
         - { version: 5.20.1, build: 2826, target-tag: 697 }
         os: [ 2022, 2025 ]
     runs-on: windows-${{ matrix.os }}

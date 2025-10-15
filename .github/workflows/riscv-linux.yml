@@ -21,7 +21,7 @@ jobs:
       matrix:
         target: [ riscv ]
         cfg:
-        - { version: 3.40.1, target-tag: 609, lmsc-version: 1.5, lmsc-tag: 739 }
+        - { version: 3.40.1, target-tag: 609, lmsc-version: 1.8, lmsc-tag: 926 }
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main

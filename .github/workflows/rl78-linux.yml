@@ -19,8 +19,8 @@ jobs:
       matrix:
         target: [ rl78 ]
         cfg:
-        - { version: 5.20.2, target-tag: 911, lmsc-version: 1.7, lmsc-tag: 923 }
-        - { version: 5.20.1, target-tag: 698, lmsc-version: 1.5, lmsc-tag: 739 }
+        - { version: 5.20.2, target-tag: 911, lmsc-version: 1.8, lmsc-tag: 926 }
+        - { version: 5.20.1, target-tag: 698, lmsc-version: 1.8, lmsc-tag: 926 }
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main

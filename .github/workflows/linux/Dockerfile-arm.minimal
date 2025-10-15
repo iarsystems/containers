@@ -4,6 +4,8 @@ FROM ubuntu:24.04
 # These variables should be populated if building images outside the GitHub Actions workflow
 ARG TARGET
 ARG VERSION
+ARG LMSC_VERSION
+ARG LMSC_TAG
 
 # Container image description and details
 LABEL org.opencontainers.image.description="IAR Build Tools for ${TARGET} (CX)"
@@ -30,9 +32,11 @@ wget \
 git \
 && rm -rf /var/lib/apt/lists/*
 
-# Intall IAR Build Tools and CMake
-RUN mkdir /opt/iar \
+# Intall LSMC, IAR Build Tools and CMake
+RUN wget -q https://netstorage.iar.com/FileStore/STANDARD/001/003/${LMSC_TAG}/iar-lmsc-tools_${LMSC_VERSION}_amd64.deb \
+&& dpkg -i iar-lmsc-tools_${LMSC_VERSION}_amd64.deb \
 && wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-minimal.tar.bz2" | tar -I lbzip2 -x -C '/opt/iar' \
+&& rm -f /opt/iar/cx${TARGET}-${VERSION}/common/bin/lmsc-daemon \
 && wget -qO- 'https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.tar.gz' | tar --strip-components=1 -xz -C '/usr/local' \
 && cd /opt/iar \
 && ln -s cx${TARGET}-${VERSION} cx${TARGET}

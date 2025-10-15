@@ -19,7 +19,7 @@ jobs:
       matrix:
         target: [ arm ]
         cfg:
-        - { version: 9.70.1, lmsc-version: 1.8, lmsc-tag: 926 },
+        - { version: 9.70.1, lmsc-version: 1.8, lmsc-tag: 926 }
         - { version: 9.60.4, lmsc-version: 1.8, lmsc-tag: 926 }
     runs-on: ubuntu-24.04
     steps:

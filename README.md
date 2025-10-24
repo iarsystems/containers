@@ -28,6 +28,7 @@ Below you will find live examples using these pre-built container images on proj
 | [iar-cmsis-dsp](https://github.com/iarsystems/iar-cmsis-dsp) | Automated builds for the Arm CMSIS-DSP libraries.
 | [cmake-tutorial](https://github.com/iarsystems/cmake-tutorial) | Automated builds for CMake projects.
 | [modern-workflow](https://github.com/iarsystems/modern-workflow) | An example of modern development workflow with IAR.
+| [riscv-board-examples](https://github.com/iarsystems/riscv-board-examples) | Example projects for the IAR RISC-V Evaluation board.
 
 
 ## Applying customizations

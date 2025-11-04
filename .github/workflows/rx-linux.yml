@@ -19,7 +19,7 @@ jobs:
       matrix:
         target: [ rx ]
         cfg:
-        - { version: 5.20.1, target-tag: 711, lmsc-version: 1.8, lmsc-tag: 926 }
+        - { version: 5.20.1, target-tag: 711, lmsc-version: 1.9, lmsc-tag: 984 }
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main

@@ -52,8 +52,7 @@ jobs:
     strategy:
       matrix:
         target: [ riscv ]
-        version: [ 3.40.2 ]
-        latest: [ 3.40.2 ]
+        version: [ 3.40.2, 3.40.1 ]
         registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
     runs-on: ubuntu-24.04
     steps:
@@ -70,13 +69,30 @@ jobs:
           ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2025-full
     - name: Push the manifest
       run: |
-        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}
-    - name: Finalize Manifest (latest)
+        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}     
+
+# Finalize manifest        
+  riscv-manifest-finalize:
+    needs: [ riscv-multi-arch ] 
+    strategy:
+      matrix:
+        target: [  riscv ]
+        latest: [ 3.40.2 ]
+        registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
+    runs-on: ubuntu-24.04
+    steps:
+    - if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Regenerate manifest for latest
       run: |
         docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:latest \
           ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-linux-full \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2022-full \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2025-full
-    - name: Push the manifest (latest)
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-windows-2022-full \
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-windows-2025-full
+    - name: Push the manifest
       run: |
-        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:latest          
+        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:latest

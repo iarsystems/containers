@@ -52,8 +52,8 @@ jobs:
     strategy:
       matrix:
         target: [ riscv ]
-        version: [ 3.40.1 ]
-        latest: [ 3.40.1 ]
+        version: [ 3.40.2 ]
+        latest: [ 3.40.2 ]
         registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
     runs-on: ubuntu-24.04
     steps:

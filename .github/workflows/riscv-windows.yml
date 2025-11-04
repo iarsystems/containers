@@ -20,7 +20,7 @@ jobs:
       matrix:
         target: [ riscv ]
         cfg:
-        - { version: 3.40.2, target-tag: 670 }
+        - { version: 3.40.2, target-tag: 970 }
         - { version: 3.40.1, target-tag: 650 }
         os: [ 2022, 2025 ]
     runs-on: windows-${{ matrix.os }}

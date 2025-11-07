@@ -1,0 +1,2 @@
+.github/**/Dockerfile-* linguist-language=Dockerfile
+.github/**/*.yml linguist-language=YAML

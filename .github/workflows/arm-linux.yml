@@ -19,6 +19,7 @@ jobs:
       matrix:
         target: [ arm ]
         cfg:
+        - { version: 9.70.2, lmsc-version: 1.9, lmsc-tag: 984 }
         - { version: 9.70.1, lmsc-version: 1.9, lmsc-tag: 984 }
         - { version: 9.60.4, lmsc-version: 1.9, lmsc-tag: 984 }
     runs-on: ubuntu-24.04
@@ -50,7 +51,7 @@ jobs:
     strategy:
       matrix:
         target: [ arm ]
-        version: [ 9.70.1, 9.60.4 ]
+        version: [ 9.70.2, 9.70.1, 9.60.4 ]
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main
@@ -79,6 +80,7 @@ jobs:
       matrix:
         target: [ arm ]
         cfg:
+        - { version: 9.70.2, timestamp: 20251103173334 }
         - { version: 9.70.1, timestamp: 20250625133953 }
         - { version: 9.60.4, timestamp: 20250303090915 }
         variant:
@@ -116,7 +118,7 @@ jobs:
     strategy:
       matrix:
         target: [ arm ]
-        version: [ 9.70.1, 9.60.4 ]
+        version: [ 9.70.2, 9.70.1, 9.60.4 ]
         registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
         variant:
         - minimal
@@ -149,7 +151,7 @@ jobs:
     strategy:
       matrix:
         target: [ arm ]
-        latest: [ 9.70.1 ]
+        latest: [ 9.70.2 ]
         registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
     runs-on: ubuntu-24.04
     steps:

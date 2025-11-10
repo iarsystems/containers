@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         target: [ arm ]
-        version: [ 9.70.1, 9.60.4 ]
+        version: [ 9.70.2, 9.70.1, 9.60.4 ]
         os: [ 2022, 2025 ]
     runs-on: windows-${{ matrix.os }}
     steps:
@@ -47,7 +47,7 @@ jobs:
     strategy:
       matrix:
         target: [ arm ]
-        version: [ 9.70.1, 9.60.4 ]
+        version: [ 9.70.2, 9.70.1, 9.60.4 ]
         os: [ 2022, 2025 ]
     runs-on: windows-${{ matrix.os }}
     steps:
@@ -79,6 +79,7 @@ jobs:
         os: [ 2022, 2025 ]
         target: [ arm ]
         cfg:
+        - { version: 9.70.2, timestamp: 20251103173334 }
         - { version: 9.70.1, timestamp: 20250625133953 }
         - { version: 9.60.4, timestamp: 20250303090915 }
         variant:

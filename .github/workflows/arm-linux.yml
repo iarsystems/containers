@@ -166,9 +166,10 @@ jobs:
     - name: Regenerate manifest for latest
       run: |
         docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:latest \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-linux-base \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-windows-2022-base \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-windows-2025-base
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-linux-base
+#          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-linux-base \
+#          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-windows-2022-base \
+#          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-windows-2025-base
     - name: Push the manifest
       run: |
         docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:latest

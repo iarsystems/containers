@@ -34,7 +34,7 @@ jobs:
       shell: powershell
       run: |
         Write-Host "Waiting for the Docker deamon to start..."
-        $timeout = 120
+        $timeout = 180
         $start = Get-Date 
         while (((Get-Date) - $start).TotalSeconds -lt $timeout) {
           if (Test-Path "\\.\pipe\docker_engine") {
@@ -72,7 +72,7 @@ jobs:
       shell: powershell
       run: |
         Write-Host "Waiting for the Docker deamon to start..."
-        $timeout = 120
+        $timeout = 180
         $start = Get-Date 
         while (((Get-Date) - $start).TotalSeconds -lt $timeout) {
           if (Test-Path "\\.\pipe\docker_engine") {
@@ -134,7 +134,7 @@ jobs:
       shell: powershell
       run: |
         Write-Host "Waiting for the Docker deamon to start..."
-        $timeout = 120
+        $timeout = 180
         $start = Get-Date 
         while (((Get-Date) - $start).TotalSeconds -lt $timeout) {
           if (Test-Path "\\.\pipe\docker_engine") {

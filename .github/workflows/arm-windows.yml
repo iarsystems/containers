@@ -30,6 +30,21 @@ jobs:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
+    - name: 'Wait for the Docker deamon (GHA WA 03/2026)'
+      shell: powershell
+      run: |
+        Write-Host "Waiting for the Docker deamon to start..."
+        $timeout = 120
+        $start = Get-Date 
+        while ((Get-Date) - $start).TotalSeconds -lt $timeout {
+          if (Test-Path "\\.\pipe\docker_engine") {
+            docker version | Out-Host
+            Write-Host "SUCCESS: Docker is up!"
+            exit 0
+          }
+          Start-Sleep -Seconds 5
+        }
+        Write-Error "ERROR: Docker deamon failed before timeout."
     - if: github.event_name != 'pull_request'
       run: |
         docker build -t ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.version }}-windows-${{ matrix.os }}-minimal `
@@ -53,6 +68,21 @@ jobs:
     steps:
     - name: 'Checkout GitHub Action' 
       uses: actions/checkout@main
+    - name: 'Wait for the Docker deamon (GHA WA 03/2026)'
+      shell: powershell
+      run: |
+        Write-Host "Waiting for the Docker deamon to start..."
+        $timeout = 120
+        $start = Get-Date 
+        while ((Get-Date) - $start).TotalSeconds -lt $timeout {
+          if (Test-Path "\\.\pipe\docker_engine") {
+            docker version | Out-Host
+            Write-Host "SUCCESS: Docker is up!"
+            exit 0
+          }
+          Start-Sleep -Seconds 5
+        }
+        Write-Error "ERROR: Docker deamon failed before timeout."
     - if: github.event_name != 'pull_request'
       uses: docker/login-action@v3
       with:
@@ -100,6 +130,21 @@ jobs:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
+    - name: 'Wait for the Docker deamon (GHA WA 03/2026)'
+      shell: powershell
+      run: |
+        Write-Host "Waiting for the Docker deamon to start..."
+        $timeout = 120
+        $start = Get-Date 
+        while ((Get-Date) - $start).TotalSeconds -lt $timeout {
+          if (Test-Path "\\.\pipe\docker_engine") {
+            docker version | Out-Host
+            Write-Host "SUCCESS: Docker is up!"
+            exit 0
+          }
+          Start-Sleep -Seconds 5
+        }
+        Write-Error "ERROR: Docker deamon failed before timeout."
     - if: github.event_name != 'pull_request'
       run: |
         docker build -t ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-${{ matrix.variant }} `

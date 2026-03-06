@@ -36,7 +36,7 @@ jobs:
         Write-Host "Waiting for the Docker deamon to start..."
         $timeout = 120
         $start = Get-Date 
-        while ((Get-Date) - $start).TotalSeconds -lt $timeout) {
+        while (((Get-Date) - $start).TotalSeconds -lt $timeout) {
           if (Test-Path "\\.\pipe\docker_engine") {
             docker version | Out-Host
             Write-Host "SUCCESS: Docker is up!"
@@ -74,7 +74,7 @@ jobs:
         Write-Host "Waiting for the Docker deamon to start..."
         $timeout = 120
         $start = Get-Date 
-        while ((Get-Date) - $start).TotalSeconds -lt $timeout) {
+        while (((Get-Date) - $start).TotalSeconds -lt $timeout) {
           if (Test-Path "\\.\pipe\docker_engine") {
             docker version | Out-Host
             Write-Host "SUCCESS: Docker is up!"
@@ -136,7 +136,7 @@ jobs:
         Write-Host "Waiting for the Docker deamon to start..."
         $timeout = 120
         $start = Get-Date 
-        while ((Get-Date) - $start).TotalSeconds -lt $timeout) {
+        while (((Get-Date) - $start).TotalSeconds -lt $timeout) {
           if (Test-Path "\\.\pipe\docker_engine") {
             docker version | Out-Host
             Write-Host "SUCCESS: Docker is up!"

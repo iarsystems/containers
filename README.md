@@ -19,6 +19,9 @@ Pre-built container images are generated from annotated [workflows](.github/work
 
 All [container images](https://github.com/orgs/iarsystems/packages) produced from this repository are freshen on a schedule.
 
+>[!CAUTION]
+>Azure Pipelines is facing a [regression](https://github.com/microsoft/azure-pipelines-agent/issues/5486) which affects the GitHub-hosted runners. This temporarily prevents us from delivering fresh Windows-based containers images. All windows-based containers which were available prior Feb'2026 are still available via ghcr.io. We are still looking into this issue for the time being. All Linux-based container images are not affected by this regression and can be used normally.
+
 ## Live examples
 Below you will find live examples using these pre-built container images on projects and those can serve as inspiration for your own projects.
 | Example | Description

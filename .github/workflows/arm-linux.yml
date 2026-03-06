@@ -142,9 +142,12 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - run: |
         docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-${{ matrix.variant }} \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-linux-${{ matrix.variant }} \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2022-${{ matrix.variant }} \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2025-${{ matrix.variant }}
+          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-linux-${{ matrix.variant }}
+#          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-linux-${{ matrix.variant }} \
+#          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2022-${{ matrix.variant }} \
+#          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2025-${{ matrix.variant }}
+    - name: Push the manifest
+      run: |
         docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-${{ matrix.variant }}
 
 # Finalize manifest        

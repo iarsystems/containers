@@ -23,6 +23,7 @@ jobs:
         - { version: 9.70.2, lmsc-version: 1.11, lmsc-tag: 123 }
         - { version: 9.70.1, lmsc-version: 1.11, lmsc-tag: 123 }
         - { version: 9.60.4, lmsc-version: 1.11, lmsc-tag: 123 }
+      fail-fast: false
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main
@@ -53,6 +54,7 @@ jobs:
       matrix:
         target: [ arm ]
         version: [ 9.70.4, 9.70.2, 9.70.1, 9.60.4 ]
+      fail-fast: false
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main
@@ -93,6 +95,7 @@ jobs:
         - infineon
         - st
         - ti
+      fail-fast: false
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main
@@ -132,6 +135,7 @@ jobs:
         - infineon
         - st
         - ti
+      fail-fast: false
     runs-on: ubuntu-24.04
     steps:
     - if: github.event_name != 'pull_request'
@@ -158,6 +162,7 @@ jobs:
         target: [ arm ]
         latest: [ 9.70.4 ]
         registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
+      fail-fast: false
     runs-on: ubuntu-24.04
     steps:
     - if: github.event_name != 'pull_request'

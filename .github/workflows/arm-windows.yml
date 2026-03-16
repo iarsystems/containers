@@ -20,6 +20,7 @@ jobs:
         target: [ arm ]
         version: [ 9.70.4, 9.70.2, 9.70.1, 9.60.4 ]
         os: [ 2022, 2025 ]
+      fail-fast: false
     runs-on: windows-${{ matrix.os }}
     steps:
     - name: 'Checkout GitHub Action' 
@@ -49,6 +50,7 @@ jobs:
         target: [ arm ]
         version: [ 9.70.4, 9.70.2, 9.70.1, 9.60.4 ]
         os: [ 2022, 2025 ]
+      fail-fast: false
     runs-on: windows-${{ matrix.os }}
     steps:
     - name: 'Checkout GitHub Action' 
@@ -91,6 +93,7 @@ jobs:
         - infineon
         - st
         - ti
+      fail-fast: false
     runs-on: windows-${{ matrix.os }}
     steps:
     - uses: actions/checkout@main

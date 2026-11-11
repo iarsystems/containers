@@ -36,7 +36,7 @@ RUN curl -s "https://updates.iar.com/?product=LMSCDAEMON" | grep -Po '(?<=href="
 && dpkg -i iar-lmsc-tools_*_amd64.deb \
 && rm iar-lmsc-tools_*_amd64.deb \
 && curl -s "https://updates.iar.com/?product=CXRX&version=${VERSION%.*}" | grep -Po '(?<=href=")[^"]*(?=")' \
-   | grep -i grep -i "^https://.*${VERSION}\.deb" | xargs -I {} curl -sO {} \
+   | grep -i "^https://.*${VERSION}.*deb" | xargs -I {} curl -sO {} \
 && dpkg -i cxrx-${VERSION}.deb \
 && rm cx*.deb \
 && wget -qO- https://github.com/kitware/cmake/releases/download/$(curl -s https://api.github.com/repos/kitware/cmake/releases/latest \

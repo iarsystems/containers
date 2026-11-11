@@ -1,14 +1,14 @@
-# These variables should be populated if building images outside the GitHub Actions workflow
-ARG WINVER
+# escape=`
 
+ARG WINVER=2025
+
+# Use a recent Server Core LTSC image
 FROM mcr.microsoft.com/windows/servercore:ltsc${WINVER} as build
 
-ARG WINVER
-ARG TARGET
-ARG VERSION
+ARG VERSION=9.70.4
 
-LABEL org.opencontainers.image.description="IAR Build Tools for ${TARGET} (CX)"
-LABEL org.opencontainers.image.ref_name="cx${TARGET}"
+LABEL org.opencontainers.image.description="IAR Build Tools for Arm (CX)"
+LABEL org.opencontainers.image.ref_name="cxarm"
 LABEL org.opencontainers.image.source="https://iar.com"
 LABEL org.opencontainers.image.vendor="IAR Systems AB"
 LABEL org.opencontainers.image.version=${VERSION}
@@ -16,32 +16,65 @@ LABEL org.opencontainers.image.version=${VERSION}
 # Set PowerShell as default shell for RUN
 SHELL ["powershell.exe", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-ADD https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-windows-x86_64-minimal.zip cxarm.zip
-ADD https://github.com/Kitware/CMake/releases/download/v4.2.0/cmake-4.2.0-windows-x86_64.zip C:/cmake.zip
-ADD https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/MinGit-2.49.0-busybox-64-bit.zip C:/git.zip
-ADD https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip ninja-win.zip
+# Install Latest CMake
+RUN `
+    $latestCMake = Invoke-RestMethod -Uri 'https://api.github.com/repos/kitware/cmake/releases/latest'; `
+    $downloadURL = ($latestCMake.assets | Where-Object { $_.name -like 'cmake-*-windows-x86_64.zip' }).browser_download_url; `
+    $fileName = ($latestCMake.assets | Where-Object { $_.name -like 'cmake-*-windows-x86_64.zip' }).name; `
+    $baseDir = [System.IO.Path]::GetFileNameWithoutExtension("$fileName"); `
+    Invoke-WebRequest -Uri "$downloadURL" -OutFile "$fileName"; `
+    New-Item -ItemType Directory -Path "C:\Tools\iar" -Force | Out-Null; `
+    Expand-Archive -Path "$fileName" -DestinationPath "C:\Tools"; `
+    Add-Content -Path 'C:\Tools\_path-cmake.txt' -NoNewLine -Value ('C:\'+$baseDir+'\bin;')
 
-# Install CMake
-RUN Expand-Archive "cmake.zip" -DestinationPath "C:/";
-# Install Git
-RUN Expand-Archive "git.zip" -DestinationPath "C:/git";
-# Install Ninja
-RUN Expand-Archive "ninja-win.zip" -DestinationPath "C:/Windows"
-# Install the IAR Build Tools
-RUN Expand-Archive "cxarm.zip" -DestinationPath "C:/iar";
+# Install Latest Git
+RUN `
+    $latestGit4W = Invoke-RestMethod -Uri 'https://api.github.com/repos/git-for-windows/git/releases/latest'; `
+    $downloadURL = ($latestGit4W.assets | Where-Object { $_.name -like 'MinGit-*-busybox-64-bit.zip' }).browser_download_url; `
+    $fileName = ($latestGit4W.assets | Where-Object { $_.name -like 'MinGit-*-busybox-64-bit.zip' }).name; `
+    $baseDir = [System.IO.Path]::GetFileNameWithoutExtension("$fileName"); `
+    Invoke-WebRequest -Uri "$downloadURL" -OutFile "$fileName"; `
+    Expand-Archive -Path "$fileName" -DestinationPath ('C:\Tools\'+$baseDir); `
+    Add-Content -Path 'C:\Tools\_path-git.txt' -NoNewLine -Value ('C:\'+$baseDir+'\cmd;')
 
+# Install Latest Ninja
+RUN `
+    $latestNinja = Invoke-RestMethod -Uri 'https://api.github.com/repos/ninja-build/ninja/releases/latest'; `
+    $downloadURL = ($latestNinja.assets | Where-Object { $_.name -eq 'ninja-win.zip' }).browser_download_url; `
+    $fileName = ($latestNinja.assets | Where-Object { $_.name -eq 'ninja-win.zip' }).name; `
+    $baseDir = [System.IO.Path]::GetFileNameWithoutExtension("$fileName"); `
+    Invoke-WebRequest -Uri "$downloadURL" -OutFile "$fileName"; `
+    Expand-Archive -Path "$fileName" -DestinationPath ('C:\Tools\'+$baseDir); `
+    Add-Content -Path 'C:\Tools\_path-ninja.txt' -NoNewLine -Value ('C:\'+$baseDir+';')
+
+# Install the IAR Build Tools for Arm (minimal)
+ADD https://github.com/iarsystems/arm/releases/download/${VERSION}/cxarm-${VERSION}-windows-x86_64-minimal.zip cxarm.zip
+RUN `
+    Expand-Archive "cxarm.zip" -DestinationPath "C:\Tools\iar"; `
+    $version=${env:VERSION}; `
+    Add-Content -Path 'C:\Tools\_path-arm.txt' -NoNewLine -Value ('C:\iar\cxarm-'+$version+'\arm\bin'+';'); `
+    Add-Content -Path 'C:\Tools\_path-common.txt' -NoNewLine -Value ('C:\iar\cxarm-'+$version+'\common\bin'+';')
+
+# Install the IAR LMSC Tools
+RUN `
+    $latestLMSC = (Invoke-WebRequest 'https://updates.iar.com/?product=LMSCDAEMON&version=1.14' -UseBasicParsing).Links | `
+      Where-Object { $_.href -like '*.exe' } | Select-Object -ExpandProperty href; `
+    $fileName = (Split-Path -Path "$latestLMSC" -Leaf); `
+    Invoke-WebRequest -Uri "$latestLMSC" -OutFile "$fileName" -UseBasicParsing; `
+    Start-Process -FilePath "$fileName" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/DIR=C:\Tools\iar\lmsc" -wait; `
+    Add-Content -Path 'C:\Tools\_path-lmsc.txt' -NoNewLine -Value 'C:\iar\lmsc;'
+
+
+# Nanoserver offers a "lightweight" option for Windows container images
 FROM mcr.microsoft.com/windows/nanoserver:ltsc${WINVER}
 
-# Forward these args to the destination image
-ARG TARGET
-ARG VERSION
+COPY --from=build ["C:/Tools/", "C:/"]
 
-ENV PATH="C:\Windows;C:\Windows\System32;C:\iar\cx${TARGET}-${VERSION}\${TARGET}\bin;C:\iar\cx${TARGET}-${VERSION}\common\bin;C:\cmake-4.2.0-windows-x86_64\bin;C:\git\cmd"
-
-COPY --from=build ["C:/iar", "C:/iar"]
-COPY --from=build ["C:/cmake-4.2.0-windows-x86_64", "C:/cmake-4.2.0-windows-x86_64" ]
-COPY --from=build [ "C:/git", "C:/git" ]
-COPY --from=build [ "C:/Windows/ninja.exe", "C:/Windows/ninja.exe"]
+# Make all tools available from PATH
+USER ContainerAdministrator
+RUN >C:\_setpath.txt (FOR %f IN (C:\_path-*.txt) DO @(TYPE "%f")) `
+    && FOR /F "delims=" %p IN (C:\_setpath.txt) DO setx /M PATH "%PATH%%p"
+USER ContainerUser   
 
 # Set the work directory
 WORKDIR "C:/workdir"

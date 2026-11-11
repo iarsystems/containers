@@ -1,17 +1,15 @@
-# These variables should be populated if building images outside the GitHub Actions workflow
-ARG TARGET
-ARG VERSION
-ARG WINVER
+# escape=`
+
+ARG WINVER=2025
 
 # The windows/servercore image is required for the tools included in -base
 FROM mcr.microsoft.com/windows/servercore:ltsc${WINVER}
 
 # Forward the ARGs to the current stage
-ARG TARGET
-ARG VERSION
+ARG VERSION=9.70.4
 
-LABEL org.opencontainers.image.description="IAR Build Tools for ${TARGET} (CX)"
-LABEL org.opencontainers.image.ref_name="cx${TARGET}"
+LABEL org.opencontainers.image.description="IAR Build Tools for Arm (CX)"
+LABEL org.opencontainers.image.ref_name="cxarm"
 LABEL org.opencontainers.image.source="https://iar.com"
 LABEL org.opencontainers.image.vendor="IAR Systems AB"
 LABEL org.opencontainers.image.version=${VERSION}
@@ -19,22 +17,54 @@ LABEL org.opencontainers.image.version=${VERSION}
 # Set PowerShell as default shell for RUN
 SHELL ["powershell.exe", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-# Install CMake
-RUN \
-Invoke-WebRequest -Uri "https://github.com/Kitware/CMake/releases/download/v4.2.0/cmake-4.2.0-windows-x86_64.zip" -OutFile "cmake.zip"; \
-Expand-Archive "cmake.zip" -DestinationPath "C:/";
-# Install Git
-RUN Invoke-WebRequest -Uri "https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/MinGit-2.49.0-busybox-64-bit.zip" -OutFile "git.zip"; \
-Expand-Archive "git.zip" -DestinationPath "C:/git";
-# Install VC++ Runtime Libraries (for: iarbuild.exe, cspybat.exe)
-RUN Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "C:/vc_redist.x64.exe"; \
-Start-Process -FilePath "C:/vc_redist.x64.exe" -ArgumentList "/install", "/quiet", "/norestart" -Wait;
-# Install the IAR Build Tools
-RUN Invoke-WebRequest -Uri "https://github.com/iarsystems/${env:TARGET}/releases/download/${env:VERSION}/cx${env:TARGET}-${env:VERSION}-windows-x86_64-base.zip" -OutFile "cxarm.zip"; \
-Expand-Archive "cxarm.zip" -DestinationPath "C:/iar";
-# Remove-Item "vc_redist.x64.exe", "*.zip";
+# Install Latest CMake
+RUN `
+    $latestCMake = Invoke-RestMethod -Uri 'https://api.github.com/repos/kitware/cmake/releases/latest'; `
+    $downloadURL = ($latestCMake.assets | Where-Object { $_.name -like 'cmake-*-windows-x86_64.zip' }).browser_download_url; `
+    $fileName = ($latestCMake.assets | Where-Object { $_.name -like 'cmake-*-windows-x86_64.zip' }).name; `
+    $baseDir = [System.IO.Path]::GetFileNameWithoutExtension("$fileName"); `
+    Invoke-WebRequest -Uri "$downloadURL" -OutFile "$fileName"; `
+    Expand-Archive -Path "$fileName" -DestinationPath 'C:\'; `
+    Remove-Item -Path "*.zip"; `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';' + 'C:\' + $baseDir + '\bin', [EnvironmentVariableTarget]::Machine)
 
-ENV PATH="C:\Windows;C:\Windows\System32;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\iar\cx${TARGET}-${VERSION}\${TARGET}\bin;C:\iar\cx${TARGET}-${VERSION}\common\bin;C:\cmake-4.2.0-windows-x86_64\bin;C:\git\cmd"
+# Install Latest Git
+RUN `
+    $latestGit4W = Invoke-RestMethod -Uri 'https://api.github.com/repos/git-for-windows/git/releases/latest'; `
+    $downloadURL = ($latestGit4W.assets | Where-Object { $_.name -like 'MinGit-*-busybox-64-bit.zip' }).browser_download_url; `
+    $fileName = ($latestGit4W.assets | Where-Object { $_.name -like 'MinGit-*-busybox-64-bit.zip' }).name; `
+    $baseDir = [System.IO.Path]::GetFileNameWithoutExtension("$fileName"); `
+    Invoke-WebRequest -Uri "$downloadURL" -OutFile "$fileName"; `
+    Expand-Archive -Path "$fileName" -DestinationPath ('C:\' + $baseDir); `
+    Remove-Item -Path "*.zip"; `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH + 'C:\' + $baseDir + '\cmd', [EnvironmentVariableTarget]::Machine)
+
+# Install VC++ Runtime Libraries (required for: iarbuild.exe, cspybat.exe)
+RUN `
+    Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "C:/vc_redist.x64.exe"; `
+    Start-Process -FilePath "C:/vc_redist.x64.exe" -ArgumentList "/install", "/quiet", "/norestart" -Wait; `
+    Remove-Item -Path "vc_redist.x64.exe"; `
+    $version=$env:VERSION; `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH + 'C:\iar\cxarm-' + $version + '\common\bin', [EnvironmentVariableTarget]::Machine)
+
+# Install the IAR Build Tools for Arm (base)
+ADD https://github.com/iarsystems/arm/releases/download/${VERSION}/cxarm-${VERSION}-windows-x86_64-base.zip cxarm.zip
+RUN `
+    New-Item -ItemType Directory -Path 'C:\iar' -Force | Out-Null; `
+    Expand-Archive -Path "cxarm.zip" -DestinationPath 'C:\iar'; `
+    Remove-Item -Path "*.zip"; `
+    $version=$env:VERSION; `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH + 'C:\iar\cxarm-' + $version + '\arm\bin', [EnvironmentVariableTarget]::Machine);
+    
+# Install the IAR LMSC Tools
+RUN `
+    $latestLMSC = (Invoke-WebRequest 'https://updates.iar.com/?product=LMSCDAEMON&version=1.14' -UseBasicParsing).Links | `
+      Where-Object { $_.href -like '*.exe' } | Select-Object -ExpandProperty href; `
+    $fileName = (Split-Path -Path "$latestLMSC" -Leaf); `
+    Invoke-WebRequest -Uri "$latestLMSC" -OutFile "$fileName" -UseBasicParsing; `
+    Start-Process -FilePath "$fileName" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/DIR=C:\iar\lmsc" -wait; `
+    Remove-Item -Path "iar-lmsc-tools*.exe"; `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH + 'C:\iar\lmsc', [EnvironmentVariableTarget]::Machine)
 
 # Set the work directory
 WORKDIR "C:/workdir"

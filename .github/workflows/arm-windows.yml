@@ -14,11 +14,15 @@ permissions:
 jobs:
   # The -minimal image can be fetched faster for simple tasks
   # It uses windows/nanoserver as initial layer
-  arm-windows-minimal:
+  minimal:
     strategy:
       matrix:
-        target: [ arm ]
-        version: [ 9.70.4, 9.70.2, 9.70.1, 9.60.4 ]
+        version:
+        - 9.60.4
+        - 9.70.1
+        - 9.70.2
+        - 9.70.4
+        - 10.10.2
         os: [ 2022, 2025 ]
       fail-fast: false
     runs-on: windows-${{ matrix.os }}
@@ -44,22 +48,25 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - if: github.event_name != 'pull_request'
       run: |
-        docker build -t ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.version }}-windows-${{ matrix.os }}-minimal `
-        -f .github/workflows/windows/Dockerfile-${{ matrix.target }}.minimal `
-        --build-arg TARGET=${{ matrix.target }} `
-        --build-arg VERSION=${{ matrix.version }} `
-        --build-arg WINVER=${{ matrix.os }} `
-        .github/workflows/windows;
-        docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.target}}:${{ matrix.version }}-windows-${{ matrix.os }}-minimal;
+        docker build -t ghcr.io/${{ github.repository_owner }}/arm:${{ matrix.version }}-windows-${{ matrix.os }}-minimal `
+          -f .github/workflows/windows/Dockerfile-arm.minimal `
+          --build-arg VERSION=${{ matrix.version }} `
+          --build-arg WINVER=${{ matrix.os }} `
+          .github/workflows/windows;
+        docker push ghcr.io/${{ github.repository_owner }}/arm:${{ matrix.version }}-windows-${{ matrix.os }}-minimal;
       shell: pwsh
 
   # The -base image includes `icstat`, `iarbuild`, and `cspybat`
   # It uses windows/servercore as initial layer
-  arm-windows-base:
+  base:
     strategy:
       matrix:
-        target: [ arm ]
-        version: [ 9.70.4, 9.70.2, 9.70.1, 9.60.4 ]
+        version:
+        - 9.60.4
+        - 9.70.1
+        - 9.70.2
+        - 9.70.4
+        - 10.10.2
         os: [ 2022, 2025 ]
       fail-fast: false
     runs-on: windows-${{ matrix.os }}
@@ -85,34 +92,33 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - if: github.event_name != 'pull_request'
       run: |
-        docker build -t ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.version }}-windows-${{ matrix.os }}-base `
-        -f .github/workflows/windows/Dockerfile-${{ matrix.target }}.base `
-        --build-arg TARGET=${{ matrix.target }} `
-        --build-arg VERSION=${{ matrix.version }} `
-        --build-arg WINVER=${{ matrix.os }} `
-        .github/workflows/windows;
-        docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.target}}:${{ matrix.version }}-windows-${{ matrix.os }}-base;
+        docker build -t ghcr.io/${{ github.repository_owner }}/arm:${{ matrix.version }}-windows-${{ matrix.os }}-base `
+          -f .github/workflows/windows/Dockerfile-arm.base `
+          --build-arg VERSION=${{ matrix.version }} `
+          --build-arg WINVER=${{ matrix.os }} `
+          .github/workflows/windows;
+        docker push ghcr.io/${{ github.repository_owner }}/arm:${{ matrix.version }}-windows-${{ matrix.os }}-base;
       shell: pwsh
 
   # Generate variant images with the IAR Build Tools for Arm
   # *including* vendor-specific device support
-  arm-windows-device:
-    needs: [ arm-windows-base ]
+  device:
+    needs: [ base ]
     strategy:
       matrix:
         os: [ 2022, 2025 ]
-        target: [ arm ]
         cfg:
-        - { version: 9.70.4, timestamp: 20260226111516 }
-        - { version: 9.70.2, timestamp: 20251103173334 }
-        - { version: 9.70.1, timestamp: 20250625133953 }
-        - { version: 9.60.4, timestamp: 20250303090915 }
+        - { version: 9.60.4,  timestamp: 20250303090915 }
+        - { version: 9.70.1,  timestamp: 20250625133953 }
+        - { version: 9.70.2,  timestamp: 20251103173334 }
+        - { version: 9.70.4,  timestamp: 20260226111516 }
+        - { version: 10.10.2, timestamp: 20260825144503 }
         variant:
         - additional
-        - microchip
-        - renesas
-        - nxp
         - infineon
+        - microchip
+        - nxp
+        - renesas
         - st
         - ti
       fail-fast: false
@@ -138,14 +144,13 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - if: github.event_name != 'pull_request'
       run: |
-        docker build -t ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-${{ matrix.variant }} `
-        -f .github/workflows/windows/Dockerfile-${{ matrix.target }}.device `
-        --build-arg TARGET=${{ matrix.target }} `
-        --build-arg TIMESTAMP=${{ matrix.cfg.timestamp }} `
-        --build-arg VARIANT=${{ matrix.variant }} `
-        --build-arg VERSION=${{ matrix.cfg.version }} `
-        --build-arg REGISTRY_REPO=ghcr.io/${{ github.repository_owner }} `
-        --build-arg WINVER=${{ matrix.os }} `
+        docker build -t ghcr.io/${{ github.repository_owner }}/arm:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-${{ matrix.variant }} `
+          -f .github/workflows/windows/Dockerfile-arm.device `
+          --build-arg TIMESTAMP=${{ matrix.cfg.timestamp }} `
+          --build-arg VARIANT=${{ matrix.variant }} `
+          --build-arg VERSION=${{ matrix.cfg.version }} `
+          --build-arg REGISTRY_REPO=ghcr.io/${{ github.repository_owner }} `
+          --build-arg WINVER=${{ matrix.os }} `
         .github/workflows/windows;
-        docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-${{ matrix.variant }};
+        docker push ghcr.io/${{ github.repository_owner }}/arm:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-${{ matrix.variant }};
       shell: pwsh

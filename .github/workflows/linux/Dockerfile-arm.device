@@ -1,5 +1,5 @@
 # These variables should be populated if building images outside the GitHub Actions workflow
-ARG VERSION="9.70.4"
+ARG VERSION="10.10.2"
 ARG VARIANT="st"
 ARG REGISTRY_REPO="docker.io/library"
 

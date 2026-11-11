@@ -14,7 +14,7 @@ LABEL org.opencontainers.image.version=${VERSION}
 # Container environment variables
 ENV LC_ALL=C \
 DEBIAN_FRONTEND="noninteractive" \
-PATH=/opt/iar/cxriscv/riscv/bin:/opt/iar/cxriscv/common/bin:/opt/iar/lmsc:$PATH \
+PATH=/opt/iar/lmsc:/opt/iar/cxriscv/riscv/bin:/opt/iar/cxriscv/common/bin:$PATH \
 CC=iccriscv \
 CXX=iccriscv \
 ASM=iasmriscv \
@@ -35,8 +35,8 @@ wget \
 RUN curl -s "https://updates.iar.com/?product=LMSCDAEMON" | grep -Po '(?<=href=")[^"]*(?=")' | grep -i '^https://.*deb' | xargs -I {} curl -sO {} \
 && dpkg -i iar-lmsc-tools_*_amd64.deb \
 && rm iar-lmsc-tools_*_amd64.deb \
-&& curl -s "https://updates.iar.com/?product=CX${TARGET^^}&version=${VERSION%.*}" | grep -Po '(?<=href=")[^"]*(?=")' \
-   | grep -i '^https://.*${VERSION}\.deb' | xargs -I {} curl -sO {} \
+&& curl -s "https://updates.iar.com/?product=CXRISCV&version=${VERSION%.*}" | grep -Po '(?<=href=")[^"]*(?=")' \
+   | grep -i "^https://.*$VERSION.*deb" | xargs -I {} curl -sO {} \
 && dpkg -i cxriscv-${VERSION}.deb \
 && rm cx*.deb \
 && wget -qO- https://github.com/kitware/cmake/releases/download/$(curl -s https://api.github.com/repos/kitware/cmake/releases/latest \

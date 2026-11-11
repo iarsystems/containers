@@ -14,7 +14,7 @@ LABEL org.opencontainers.image.version=${VERSION}
 # Container environment variables
 ENV LC_ALL=C \
 DEBIAN_FRONTEND="noninteractive" \
-PATH=/opt/iar/cxarm/arm/bin:/opt/iar/cxarm/common/bin:$PATH \
+PATH=/opt/iar/lmsc:/opt/iar/cxarm/arm/bin:/opt/iar/cxarm/common/bin:$PATH \
 CC=iccarm \
 CXX=iccarm \
 ASM=iasmarm \

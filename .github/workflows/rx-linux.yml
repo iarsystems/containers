@@ -17,9 +17,12 @@ jobs:
   rx-full:
     strategy:
       matrix:
-        cfg:
-        - { version: 5.20.1 }
+        version:
+        - 5.20.1
     runs-on: ubuntu-24.04
+    if: >-
+      github.event.workflow_run.conclusion == 'success' ||
+      github.event_name == 'workflow_dispatch'
     steps:
     - uses: actions/checkout@main
     - if: github.event_name != 'pull_request'
@@ -32,20 +35,20 @@ jobs:
       with:
         file: ./.github/workflows/linux/Dockerfile-rx.full
         build-args: |
-          VERSION=${{ matrix.cfg.version }}
+          VERSION=${{ matrix.version }}
           REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-          ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.cfg.version }}-linux-full
-
+          ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.version }}-linux-full
   # Regenerate the Docker manifest so that we get the multi-arch image
   rx-multi-arch:
     needs: [ rx-full ]
     strategy:
       matrix:
-        version: [ 5.20.1 ]
-        latest: [ 5.20.1 ]
-        registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
+        version:
+        - 5.20.1
+      fail-fast: false
+      max-parallel: 1
     runs-on: ubuntu-24.04
     steps:
     - if: github.event_name != 'pull_request'
@@ -54,20 +57,18 @@ jobs:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - run: |
-        docker manifest create ${{ matrix.registry-repo }}/rx:${{ matrix.version }} \
-          ${{ matrix.registry-repo }}/rx:${{ matrix.version }}-linux-full \
-          ${{ matrix.registry-repo }}/rx:${{ matrix.version }}-windows-2022-full \
-          ${{ matrix.registry-repo }}/rx:${{ matrix.version }}-windows-2025-full
-    - name: Push the manifest
+    - name: Push the multi-architecture manifest
       run: |
-        docker manifest push ${{ matrix.registry-repo }}/rx:${{ matrix.version }}
-    - name: Finalize Manifest (latest)
+        docker manifest create ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.version }} \
+          ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.version }}-linux-full \
+          ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.version }}-windows-2022-full \
+          ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.version }}-windows-2025-full
+        docker manifest push ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.version }}
+    - name: Push latest
+      if: matrix.version == '5.20.1'
       run: |
-        docker manifest create ${{ matrix.registry-repo }}/rx:latest \
-          ${{ matrix.registry-repo }}/rx:${{ matrix.latest }}-linux-full \
-          ${{ matrix.registry-repo }}/rx:${{ matrix.version }}-windows-2022-full \
-          ${{ matrix.registry-repo }}/rx:${{ matrix.version }}-windows-2025-full
-    - name: Push the manifest (latest)
-      run: |
-        docker manifest push ${{ matrix.registry-repo }}/rx:latest          
+        docker manifest create ghcr.io/${{ github.repository_owner }}/rx:latest \
+          ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.version }}-linux-full \
+          ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.version }}-windows-2022-full \
+          ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.version }}-windows-2025-full
+        docker manifest push ghcr.io/${{ github.repository_owner }}/rx:latest

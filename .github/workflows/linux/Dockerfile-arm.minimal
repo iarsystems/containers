@@ -2,14 +2,11 @@
 FROM ubuntu:24.04
 
 # These variables should be populated if building images outside the GitHub Actions workflow
-ARG TARGET
-ARG VERSION
-ARG LMSC_VERSION
-ARG LMSC_TAG
+ARG VERSION=10.10.2
 
 # Container image description and details
-LABEL org.opencontainers.image.description="IAR Build Tools for ${TARGET} (CX)"
-LABEL org.opencontainers.image.ref_name="cx${TARGET}"
+LABEL org.opencontainers.image.description="IAR Build Tools for Arm (CX)"
+LABEL org.opencontainers.image.ref_name="cxarm"
 LABEL org.opencontainers.image.source="https://iar.com"
 LABEL org.opencontainers.image.vendor="IAR Systems AB"
 LABEL org.opencontainers.image.version=${VERSION}
@@ -17,29 +14,34 @@ LABEL org.opencontainers.image.version=${VERSION}
 # Container environment variables
 ENV LC_ALL=C \
 DEBIAN_FRONTEND="noninteractive" \
-PATH=/opt/iar/cx${TARGET}/${TARGET}/bin:/opt/iar/cx${TARGET}/common/bin:$PATH \
-CC=icc${TARGET} \
-CXX=icc${TARGET} \
-ASM=iasm${TARGET} \
+PATH=/opt/iar/cxarm/arm/bin:/opt/iar/cxarm/common/bin:$PATH \
+CC=iccarm \
+CXX=iccarm \
+ASM=iasmarm \
 HOME=/workdir
 
 # Linux-specific dependencies and conveniences
 RUN apt-get update \
 && apt-get install -y --no-install-recommends \
 ca-certificates \
-lbzip2 \
-wget \
+curl \
 git \
+jq \
+lbzip2 \
+libusb-1.0-0 \
+wget \
 && rm -rf /var/lib/apt/lists/*
 
-# Intall LSMC, IAR Build Tools and CMake
-RUN wget -q https://netstorage.iar.com/FileStore/STANDARD/001/004/${LMSC_TAG}/iar-lmsc-tools_${LMSC_VERSION}_amd64.deb \
-&& dpkg -i iar-lmsc-tools_${LMSC_VERSION}_amd64.deb \
-&& wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-${VERSION}-linux-x86_64-minimal.tar.bz2" | tar -I lbzip2 -x -C '/opt/iar' \
-&& rm -f /opt/iar/cx${TARGET}-${VERSION}/common/bin/lmsc-daemon \
-&& wget -qO- 'https://github.com/Kitware/CMake/releases/download/v4.2.0/cmake-4.2.0-linux-x86_64.tar.gz' | tar --strip-components=1 -xz -C '/usr/local' \
-&& cd /opt/iar \
-&& ln -s cx${TARGET}-${VERSION} cx${TARGET}
+# Intall LSMC, IAR Build Tools, and CMake
+RUN curl -s "https://updates.iar.com/?product=LMSCDAEMON" | grep -Po '(?<=href=")[^"]*(?=")' | grep -i '^https://.*deb' | xargs -I {} curl -sO {} \
+&& dpkg -i iar-lmsc-tools_*_amd64.deb \
+&& rm iar-lmsc-tools_*_amd64.deb \
+&& wget -qO- "https://github.com/iarsystems/arm/releases/download/${VERSION}/cxarm-${VERSION}-linux-x86_64-minimal.tar.bz2" | tar -I lbzip2 -x -C '/opt/iar' \
+&& ln -sr /opt/iar/cxarm-${VERSION} /opt/iar/cxarm \
+&& rm -f /opt/iar/cxarm/common/bin/lmsc-daemon \
+&& wget -qO- https://github.com/kitware/cmake/releases/download/$(curl -s https://api.github.com/repos/kitware/cmake/releases/latest \
+   | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')/cmake-$(curl -s https://api.github.com/repos/kitware/cmake/releases/latest \
+   | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')-linux-x86_64.tar.gz | tar --strip-components=1 -xz -C '/usr/local'
 
 # Set the default work directory to ${HOME}
 WORKDIR ${HOME}

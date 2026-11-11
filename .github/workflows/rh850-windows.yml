@@ -12,13 +12,13 @@ permissions:
   packages: write
 
 jobs:
-  # Generate the -full image with the IAR Build Tools for Renesas RH850
+  # Generate the -full image with the IAR Build Tools for Renesas RH850 (CX)
   rh850-full:
     strategy:
       matrix:
-        target: [ rh850 ]
         cfg:
-        - { version: 3.20.1, build: 2142, target-tag: '083' }
+        - { version: 3.20.2 }
+        - { version: 3.20.1 }
         os: [ 2022, 2025 ]
     runs-on: windows-${{ matrix.os }}
     steps:
@@ -42,13 +42,10 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - if: github.event_name != 'pull_request'
       run: |
-        docker build -t ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full `
+        docker build -t ghcr.io/${{ github.repository_owner }}/rh850:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full `
           -f .github/workflows/windows/Dockerfile-${{ matrix.target }}.full `
-          --build-arg TARGET=${{ matrix.target }} `
           --build-arg VERSION=${{ matrix.cfg.version }} `
-          --build-arg TARGET_TAG=${{ matrix.cfg.target-tag }} `
-          --build-arg BUILD_VER=${{ matrix.cfg.build }} `
           --build-arg WINVER=${{ matrix.os }} `
           .github/workflows/windows;
-        docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.target}}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full;
+        docker push ghcr.io/${{ github.repository_owner }}/rh850:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full;
       shell: pwsh

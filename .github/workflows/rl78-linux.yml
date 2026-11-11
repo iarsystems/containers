@@ -17,10 +17,9 @@ jobs:
   rl78-full:
     strategy:
       matrix:
-        target: [ rl78 ]
         cfg:
-        - { version: 5.20.2, target-tag: 911, lmsc-version: 1.9, lmsc-tag: 984 }
-        - { version: 5.20.1, target-tag: 698, lmsc-version: 1.9, lmsc-tag: 984 }
+        - { version: 5.20.2 }
+        - { version: 5.20.1 }
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main
@@ -30,26 +29,21 @@ jobs:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - uses: docker/build-push-action@v6
+    - uses: docker/build-push-action@v7
       with:
-        file: ./.github/workflows/linux/Dockerfile-${{ matrix.target }}.full
+        file: ./.github/workflows/linux/Dockerfile-rl78.full
         build-args: |
-          TARGET=${{ matrix.target }}
           VERSION=${{ matrix.cfg.version }}
-          TARGET_TAG=${{ matrix.cfg.target-tag }}
-          LMSC_VERSION=${{ matrix.cfg.lmsc-version }}
-          LMSC_TAG=${{ matrix.cfg.lmsc-tag }}
           REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-          ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-linux-full
+          ghcr.io/${{ github.repository_owner }}/rl78:${{ matrix.cfg.version }}-linux-full
 
   # Regenerate the Docker manifest so that we get the multi-arch image
   rl78-multi-arch:
     needs: [ rl78-full ]
     strategy:
       matrix:
-        target: [ rl78 ]
         version: [ 5.20.2 ]
         latest: [ 5.20.2 ]
         registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
@@ -62,19 +56,19 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - run: |
-        docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }} \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-linux-full \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2022-full \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2025-full
+        docker manifest create ${{ matrix.registry-repo }}/rl78:${{ matrix.version }} \
+          ${{ matrix.registry-repo }}/rl78:${{ matrix.version }}-linux-full \
+          ${{ matrix.registry-repo }}/rl78:${{ matrix.version }}-windows-2022-full \
+          ${{ matrix.registry-repo }}/rl78:${{ matrix.version }}-windows-2025-full
     - name: Push the manifest
       run: |
-        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}
+        docker manifest push ${{ matrix.registry-repo }}/rl78:${{ matrix.version }}
     - name: Finalize Manifest (latest)
       run: |
-        docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:latest \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-linux-full \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2022-full \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2025-full
+        docker manifest create ${{ matrix.registry-repo }}/rl78:latest \
+          ${{ matrix.registry-repo }}/rl78:${{ matrix.latest }}-linux-full \
+          ${{ matrix.registry-repo }}/rl78:${{ matrix.version }}-windows-2022-full \
+          ${{ matrix.registry-repo }}/rl78:${{ matrix.version }}-windows-2025-full
     - name: Push the manifest (latest)
       run: |
-        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:latest          
+        docker manifest push ${{ matrix.registry-repo }}/rl78:latest          

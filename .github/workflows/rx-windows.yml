@@ -16,9 +16,8 @@ jobs:
   rx-full:
     strategy:
       matrix:
-        target: [ rx ]
         cfg:
-        - { version: 5.20.1, build: 6541, target-tag: 710 }
+        - { version: 5.20.1 }
         os: [ 2022, 2025 ]
     runs-on: windows-${{ matrix.os }}
     steps:
@@ -42,13 +41,10 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - if: github.event_name != 'pull_request'
       run: |
-        docker build -t ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full `
-          -f .github/workflows/windows/Dockerfile-${{ matrix.target }}.full `
-          --build-arg TARGET=${{ matrix.target }} `
+        docker build -t ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full `
+          -f .github/workflows/windows/Dockerfile-rx.full `
           --build-arg VERSION=${{ matrix.cfg.version }} `
-          --build-arg TARGET_TAG=${{ matrix.cfg.target-tag }} `
-          --build-arg BUILD_VER=${{ matrix.cfg.build }} `
           --build-arg WINVER=${{ matrix.os }} `
           .github/workflows/windows;
-        docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.target}}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full;
+        docker push ghcr.io/${{ github.repository_owner }}/rx:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full;
       shell: pwsh

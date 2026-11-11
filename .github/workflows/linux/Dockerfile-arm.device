@@ -1,18 +1,16 @@
 # These variables should be populated if building images outside the GitHub Actions workflow
-ARG TARGET
-ARG VERSION
-ARG VARIANT
-ARG TIMESTAMP
-ARG REGISTRY_REPO
+ARG VERSION="9.70.4"
+ARG VARIANT="st"
+ARG REGISTRY_REPO="docker.io/library"
 
 # Re-use base image as base layer
-FROM ${REGISTRY_REPO}/${TARGET}:${VERSION}-linux-base
+FROM ${REGISTRY_REPO}/arm:${VERSION}-linux-base
 
 # Reuse previous arguments in this stage
-ARG TARGET
 ARG VERSION
 ARG VARIANT
-ARG TIMESTAMP
 
 # Intall Device support
-RUN wget -qO- "https://github.com/iarsystems/${TARGET}/releases/download/${VERSION}/cx${TARGET}-device-support-${VARIANT}-${VERSION}.${TIMESTAMP}.tar.bz2" | tar -I lbzip2 -x -C '/opt/iar'
+RUN wget -qO- $(curl -s https://api.github.com/repos/iarsystems/arm/releases/tags/${VERSION} \
+    | jq -r --arg PAT "device-support-${VARIANT}.*\\.bz2" '.assets[] | select(.name | test($PAT)) | .browser_download_url') \
+    | tar -I lbzip2 -x -C '/opt/iar'

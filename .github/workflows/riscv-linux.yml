@@ -19,10 +19,9 @@ jobs:
   riscv-full:
     strategy:
       matrix:
-        target: [ riscv ]
         cfg:
-        - { version: 3.40.2, target-tag: 971, lmsc-version: 1.9, lmsc-tag: 984 }
-        - { version: 3.40.1, target-tag: 609, lmsc-version: 1.9, lmsc-tag: 984 }
+        - { version: 3.40.2 }
+        - { version: 3.40.1 }
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@main
@@ -32,26 +31,21 @@ jobs:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - uses: docker/build-push-action@v6
+    - uses: docker/build-push-action@v7
       with:
-        file: ./.github/workflows/linux/Dockerfile-${{ matrix.target }}.full
+        file: ./.github/workflows/linux/Dockerfile-riscv.full
         build-args: |
-          TARGET=${{ matrix.target }}
           VERSION=${{ matrix.cfg.version }}
-          TARGET_TAG=${{ matrix.cfg.target-tag }}
-          LMSC_VERSION=${{ matrix.cfg.lmsc-version }}
-          LMSC_TAG=${{ matrix.cfg.lmsc-tag }}
           REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-          ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-linux-full
+          ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.cfg.version }}-linux-full
 
   # Regenerate the Docker manifest so that we get the multi-arch image
   riscv-multi-arch:
     needs: [ riscv-full ]
     strategy:
       matrix:
-        target: [ riscv ]
         version: [ 3.40.2, 3.40.1 ]
         registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
     runs-on: ubuntu-24.04
@@ -63,13 +57,13 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - run: |
-        docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }} \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-linux-full \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2022-full \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}-windows-2025-full
+        docker manifest create ${{ matrix.registry-repo }}/riscv:${{ matrix.version }} \
+          ${{ matrix.registry-repo }}/riscv:${{ matrix.version }}-linux-full \
+          ${{ matrix.registry-repo }}/riscv:${{ matrix.version }}-windows-2022-full \
+          ${{ matrix.registry-repo }}/riscv:${{ matrix.version }}-windows-2025-full
     - name: Push the manifest
       run: |
-        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.version }}     
+        docker manifest push ${{ matrix.registry-repo }}/riscv:${{ matrix.version }}     
 
 # Finalize manifest        
   riscv-manifest-finalize:
@@ -89,10 +83,10 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Regenerate manifest for latest
       run: |
-        docker manifest create ${{ matrix.registry-repo }}/${{ matrix.target }}:latest \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-linux-full \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-windows-2022-full \
-          ${{ matrix.registry-repo }}/${{ matrix.target }}:${{ matrix.latest }}-windows-2025-full
+        docker manifest create ${{ matrix.registry-repo }}/riscv:latest \
+          ${{ matrix.registry-repo }}/riscv:${{ matrix.latest }}-linux-full \
+          ${{ matrix.registry-repo }}/riscv:${{ matrix.latest }}-windows-2022-full \
+          ${{ matrix.registry-repo }}/riscv:${{ matrix.latest }}-windows-2025-full
     - name: Push the manifest
       run: |
-        docker manifest push ${{ matrix.registry-repo }}/${{ matrix.target }}:latest
+        docker manifest push ${{ matrix.registry-repo }}/riscv:latest

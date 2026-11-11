@@ -18,10 +18,9 @@ jobs:
   riscv-full:
     strategy:
       matrix:
-        target: [ riscv ]
         cfg:
-        - { version: 3.40.2, target-tag: 970 }
-        - { version: 3.40.1, target-tag: 650 }
+        - { version: 3.40.2 }
+        - { version: 3.40.1 }
         os: [ 2022, 2025 ]
     runs-on: windows-${{ matrix.os }}
     steps:
@@ -45,12 +44,10 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - if: github.event_name != 'pull_request'
       run: |
-        docker build -t ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full `
-          -f .github/workflows/windows/Dockerfile-${{ matrix.target }}.full `
-          --build-arg TARGET=${{ matrix.target }} `
+        docker build -t ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full `
+          -f .github/workflows/windows/Dockerfile-riscv.full `
           --build-arg VERSION=${{ matrix.cfg.version }} `
-          --build-arg TARGET_TAG=${{ matrix.cfg.target-tag }} `
           --build-arg WINVER=${{ matrix.os }} `
           .github/workflows/windows;
-        docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.target}}:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full;
+        docker push ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.cfg.version }}-windows-${{ matrix.os }}-full;
       shell: pwsh

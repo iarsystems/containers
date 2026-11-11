@@ -19,10 +19,13 @@ jobs:
   riscv-full:
     strategy:
       matrix:
-        cfg:
-        - { version: 3.40.2 }
-        - { version: 3.40.1 }
+        version:
+        - 3.40.1
+        - 3.40.2
     runs-on: ubuntu-24.04
+    if: >-
+      github.event.workflow_run.conclusion == 'success' ||
+      github.event_name == 'workflow_dispatch'
     steps:
     - uses: actions/checkout@main
     - if: github.event_name != 'pull_request'
@@ -35,19 +38,21 @@ jobs:
       with:
         file: ./.github/workflows/linux/Dockerfile-riscv.full
         build-args: |
-          VERSION=${{ matrix.cfg.version }}
+          VERSION=${{ matrix.version }}
           REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-          ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.cfg.version }}-linux-full
-
+          ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.version }}-linux-full
   # Regenerate the Docker manifest so that we get the multi-arch image
   riscv-multi-arch:
     needs: [ riscv-full ]
     strategy:
       matrix:
-        version: [ 3.40.2, 3.40.1 ]
-        registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
+        version:
+        - 3.40.1
+        - 3.40.2
+      fail-fast: false
+      max-parallel: 1
     runs-on: ubuntu-24.04
     steps:
     - if: github.event_name != 'pull_request'
@@ -56,37 +61,18 @@ jobs:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - run: |
-        docker manifest create ${{ matrix.registry-repo }}/riscv:${{ matrix.version }} \
-          ${{ matrix.registry-repo }}/riscv:${{ matrix.version }}-linux-full \
-          ${{ matrix.registry-repo }}/riscv:${{ matrix.version }}-windows-2022-full \
-          ${{ matrix.registry-repo }}/riscv:${{ matrix.version }}-windows-2025-full
-    - name: Push the manifest
+    - name: Push the multi-architecture manifest
       run: |
-        docker manifest push ${{ matrix.registry-repo }}/riscv:${{ matrix.version }}     
-
-# Finalize manifest        
-  riscv-manifest-finalize:
-    needs: [ riscv-multi-arch ] 
-    strategy:
-      matrix:
-        target: [  riscv ]
-        latest: [ 3.40.2 ]
-        registry-repo: [ "ghcr.io/${{ github.repository_owner }}" ]
-    runs-on: ubuntu-24.04
-    steps:
-    - if: github.event_name != 'pull_request'
-      uses: docker/login-action@v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Regenerate manifest for latest
+        docker manifest create ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.version }} \
+          ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.version }}-linux-full \
+          ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.version }}-windows-2022-full \
+          ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.version }}-windows-2025-full
+        docker manifest push ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.version }}     
+    - name: Push latest
+      if: matrix.version == '3.40.2'
       run: |
-        docker manifest create ${{ matrix.registry-repo }}/riscv:latest \
-          ${{ matrix.registry-repo }}/riscv:${{ matrix.latest }}-linux-full \
-          ${{ matrix.registry-repo }}/riscv:${{ matrix.latest }}-windows-2022-full \
-          ${{ matrix.registry-repo }}/riscv:${{ matrix.latest }}-windows-2025-full
-    - name: Push the manifest
-      run: |
-        docker manifest push ${{ matrix.registry-repo }}/riscv:latest
+        docker manifest create ghcr.io/${{ github.repository_owner }}/riscv:latest \
+          ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.version }}-linux-full \
+          ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.version }}-windows-2022-full \
+          ghcr.io/${{ github.repository_owner }}/riscv:${{ matrix.version }}-windows-2025-full
+        docker manifest push ghcr.io/${{ github.repository_owner }}/riscv:latest

@@ -3,7 +3,7 @@ name: cleanup
 on:
   workflow_dispatch:
   schedule:
-  - cron: '0 4 1 * *'
+  - cron: '0 4 2 * *'
 
 env:
   GH_TOKEN: ${{ github.token }}
@@ -17,7 +17,12 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        target: [ arm, riscv, rl78, rx ]
+        target:
+        - arm
+        - rh850
+        - riscv
+        - rl78
+        - rx
     steps:
     - name: Cleanup dangling images
       run: |
